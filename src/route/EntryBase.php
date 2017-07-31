@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\route;
 
+use pheonixsearch\core\Index;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
 
@@ -27,8 +28,9 @@ abstract class AbstractEntry implements EntryInterface
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
 
-    protected function index(string $json)
+    protected function index(\stdClass $object)
     {
+        $index = new Index($object);
 
     }
 
