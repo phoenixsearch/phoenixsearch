@@ -8,7 +8,7 @@ use pheonixsearch\types\EntryInterface;
 
 abstract class AbstractEntry implements EntryInterface
 {
-    protected $path
+    protected $path = '';
 
     private $requestMethodMap = [
         HttpBase::HTTP_METHOD_GET    => HttpBase::HTTP_GET_METHOD,
@@ -40,6 +40,7 @@ abstract class AbstractEntry implements EntryInterface
 
     protected function update()
     {
+        echo 124;
     }
 
     protected function delete()

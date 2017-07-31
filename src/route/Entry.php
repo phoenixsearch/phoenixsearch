@@ -36,6 +36,6 @@ class Entry extends AbstractEntry
         if (empty($this->requestBodyJson)) {
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY], Errors::REQUEST_BODY_IS_EMPTY);
         }
-        $this->requestBodyObject = Request::getJsonBody();
+        $this->requestBodyObject = Request::getJsonBody($this->requestBodyJson);
     }
 }
