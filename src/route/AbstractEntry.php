@@ -31,7 +31,6 @@ abstract class AbstractEntry implements EntryInterface
     protected function index(\stdClass $object)
     {
         $index = new Index($object);
-
     }
 
     protected function search()
@@ -40,7 +39,6 @@ abstract class AbstractEntry implements EntryInterface
 
     protected function update()
     {
-        echo 124;
     }
 
     protected function delete()
