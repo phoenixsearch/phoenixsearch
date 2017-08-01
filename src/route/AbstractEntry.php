@@ -37,8 +37,10 @@ abstract class AbstractEntry implements EntryInterface
     {
     }
 
-    protected function update()
+    protected function update(\stdClass $object)
     {
+        $index = new Index($object);
+        $index->buildIndex();
     }
 
     protected function delete()

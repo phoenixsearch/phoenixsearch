@@ -4,5 +4,8 @@ namespace pheonixsearch\core;
 
 class Core
 {
-    protected function filter
+    protected function insert()
+    {
+
+    }
 }

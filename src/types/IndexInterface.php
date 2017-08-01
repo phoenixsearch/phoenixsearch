@@ -10,5 +10,5 @@ namespace pheonixsearch\types;
 
 interface IndexInterface
 {
-
+    const SYMBOL_SPACE = ' ';
 }
