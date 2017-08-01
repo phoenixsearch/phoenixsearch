@@ -11,11 +11,12 @@ class Index extends Core
     // store the serialized hashed document
     private $hashedJson     = '';
 
-    public function __construct(\stdClass $object)
+    public function __construct(array $uri, \stdClass $object)
     {
         $this->jsonObject     = $object;
         $this->serializedJson = serialize($this->jsonObject);
         $this->hashedJson     = sha1($this->serializedJson);
+        parent::__construct($uri, $this->hashedJson);
     }
 
     public function buildIndex()
@@ -31,10 +32,9 @@ class Index extends Core
     private function storeHashes(string $word)
     {
         $wordHash = md5($word);
-        // todo: files with name pair index_/_type (ES like)
-
-        // todo: construct mappings md5-wods->sha1-docs
-
+        // todo: construct mappings type_md5(word)->sha1(docs)
+        $this->insertWord($wordHash);
         // todo: sha1-docs key to serialized doc
     }
+
 }

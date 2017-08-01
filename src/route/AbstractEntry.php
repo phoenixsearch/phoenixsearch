@@ -28,18 +28,19 @@ abstract class AbstractEntry implements EntryInterface
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
 
-    protected function index(\stdClass $object)
+    protected function index(array $uri, \stdClass $object)
     {
-        $index = new Index($object);
+        $index = new Index($uri, $object);
+
     }
 
-    protected function search()
+    protected function search(array $uri, \stdClass $object)
     {
     }
 
-    protected function update(\stdClass $object)
+    protected function update(array $uri, \stdClass $object)
     {
-        $index = new Index($object);
+        $index = new Index($uri, $object);
         $index->buildIndex();
     }
 
