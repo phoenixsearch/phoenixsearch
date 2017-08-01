@@ -12,7 +12,7 @@ class Index extends Core
     private $hashedJson     = '';
 
     public function __construct(array $uri, \stdClass $object)
-    {
+    {echo 12;
         $this->jsonObject     = $object;
         $this->serializedJson = serialize($this->jsonObject);
         $this->hashedJson     = sha1($this->serializedJson);

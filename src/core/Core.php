@@ -15,6 +15,7 @@ class Core extends Storage
         $this->hashedJson = $hashedJson;
         $this->routePath  = $uri[EntryInterface::URI_PATH];
         $this->routeQuery = $uri[EntryInterface::URI_QUERY];
+        parent::__construct($this->routePath, $this->routeQuery);
     }
 
     protected function insertWord(string $wordHash)
@@ -23,5 +24,4 @@ class Core extends Storage
         $tps = $this->getTps($wordHash);
 
     }
-
 }

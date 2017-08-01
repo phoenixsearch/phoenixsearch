@@ -9,11 +9,11 @@ use pheonixsearch\types\HttpBase;
 
 class Entry extends AbstractEntry
 {
-    private $requestBodyJson   = '';
+    private $requestBodyJson = '';
     private $requestBodyObject = null;
-    private $requestMethod     = '';
-    private $routePath         = null;
-    private $routeQuery        = null;
+    private $requestMethod = '';
+    private $routePath = null;
+    private $routeQuery = null;
 
     public function __construct()
     {
@@ -28,11 +28,12 @@ class Entry extends AbstractEntry
     {
         call_user_func(
             [
-                $this, $this->getIndexMethod($this->requestMethod)
-            ], $this->requestBodyObject, [
+                $this, $this->getIndexMethod($this->requestMethod),
+            ], [
                 self::URI_PATH  => $this->routePath,
                 self::URI_QUERY => $this->routeQuery,
-            ]
+            ],
+            $this->requestBodyObject
         );
     }
 

@@ -10,7 +10,8 @@ namespace pheonixsearch\types;
 
 interface StorageInterface
 {
-    const BASE_STORAGE_DIR = '/var/lib/pheonixsearch/';
+    const BASE_STORAGE_DIR      = '/var/lib/pheonixsearch/';
+    const BASE_STORAGE_DIR_MODE = 0755;
     // file extensions
     const MP_FILE_EXT  = '.mp';
     const TP_FILE_EXT  = '.tp';

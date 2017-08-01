@@ -1,8 +1,7 @@
 <?php
-
 namespace pheonixsearch\exceptions;
 
-class RequestException extends BaseException
+class DirectoryException extends BaseException
 {
     public function __construct($message = "", $code = 0)
     {
