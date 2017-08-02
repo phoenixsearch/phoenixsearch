@@ -1,13 +1,8 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: root
- * Date: 01.08.17
- * Time: 19:40
- */
 
 namespace pheonixsearch\core;
 
+use Closure;
 
 class Environment
 {
@@ -17,5 +12,38 @@ class Environment
         while ($line = fgets($fp)) {
             putenv(str_replace(PHP_EOL, '', $line));
         }
+    }
+
+    /**
+     * Gets the value of an environment variable.
+     *
+     * @param  string $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    public static function getEnv($key, $default = null)
+    {
+        $value = getenv($key);
+
+        if ($value === false) {
+            return $default instanceof Closure ? $default() : $default;
+        }
+
+        switch (strtolower($value)) {
+            case 'true':
+            case '(true)':
+                return true;
+            case 'false':
+            case '(false)':
+                return false;
+            case 'empty':
+            case '(empty)':
+                return '';
+            case 'null':
+            case '(null)':
+                return;
+        }
+
+        return $value;
     }
 }

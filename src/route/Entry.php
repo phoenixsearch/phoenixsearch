@@ -33,7 +33,8 @@ class Entry extends AbstractEntry
                 self::URI_PATH  => $this->routePath,
                 self::URI_QUERY => $this->routeQuery,
             ],
-            $this->requestBodyObject
+            $this->requestBodyObject,
+            $this->requestBodyJson // we only do json_encode once and then pass it through api
         );
     }
 

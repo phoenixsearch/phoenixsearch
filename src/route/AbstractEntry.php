@@ -28,23 +28,43 @@ abstract class AbstractEntry implements EntryInterface
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
 
-    protected function index(array $uri, \stdClass $object)
+    /**
+     * @param array     $uri
+     * @param \stdClass $object
+     * @param string    $json
+     */
+    protected function index(array $uri, \stdClass $object, string $json)
     {
         $index = new Index($uri, $object);
 
     }
 
-    protected function search(array $uri, \stdClass $object)
+    /**
+     * @param array     $uri
+     * @param \stdClass $object
+     * @param string    $json
+     */
+    protected function search(array $uri, \stdClass $object, string $json)
     {
     }
 
-    protected function update(array $uri, \stdClass $object)
+    /**
+     * @param array     $uri
+     * @param \stdClass $object
+     * @param string    $json
+     */
+    protected function update(array $uri, \stdClass $object, string $json)
     {
         $index = new Index($uri, $object);
         $index->buildIndex();
     }
 
-    protected function delete()
+    /**
+     * @param array     $uri
+     * @param \stdClass $object
+     * @param string    $json
+     */
+    protected function delete(array $uri, \stdClass $object, string $json)
     {
     }
 }

@@ -6,17 +6,11 @@ use pheonixsearch\types\IndexInterface;
 class Index extends Core
 {
     private $jsonObject     = null;
-    // stores the serialized document
-    private $serializedJson = '';
-    // store the serialized hashed document
-    private $hashedJson     = '';
 
-    public function __construct(array $uri, \stdClass $object)
-    {echo 12;
+    public function __construct(array $uri, \stdClass $object, string $json)
+    {
         $this->jsonObject     = $object;
-        $this->serializedJson = serialize($this->jsonObject);
-        $this->hashedJson     = sha1($this->serializedJson);
-        parent::__construct($uri, $this->hashedJson);
+        parent::__construct($uri, $object, $json);
     }
 
     public function buildIndex()
@@ -31,10 +25,7 @@ class Index extends Core
 
     private function storeHashes(string $word)
     {
-        $wordHash = md5($word);
-        // todo: construct mappings type_md5(word)->sha1(docs)
-        $this->insertWord($wordHash);
-        // todo: sha1-docs key to serialized doc
+        $this->insertWord($word);
     }
 
 }

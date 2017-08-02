@@ -2,7 +2,8 @@
 
 namespace pheonixsearch\core;
 
-class Search extends Core
+
+class Delete extends Core
 {
 
 }
