@@ -4,6 +4,7 @@ namespace pheonixsearch\route;
 
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
+use pheonixsearch\core\Search;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
 
@@ -44,31 +45,27 @@ abstract class AbstractEntry implements EntryInterface
     }
 
     /**
-     * @param array     $uri
-     * @param \stdClass $object
-     * @param string    $json
+     *
      */
-    protected function search(array $uri, \stdClass $object, string $json)
+    protected function search()
     {
+        $search = new Search($this->requestHandler);
     }
 
     /**
-     * @param array     $uri
-     * @param \stdClass $object
-     * @param string    $json
+     *
      */
-    protected function update(array $uri, \stdClass $object, string $json)
+    protected function update()
     {
-        $index = new Index($uri, $object, $json);
+        $index = new Index($this->requestHandler);
         $index->buildIndex();
     }
 
     /**
-     * @param array     $uri
-     * @param \stdClass $object
-     * @param string    $json
+     *
      */
-    protected function delete(array $uri, \stdClass $object, string $json)
+    protected function delete()
     {
+
     }
 }

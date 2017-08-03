@@ -9,8 +9,11 @@ class Environment
     public function setEnvironment()
     {
         $fp = fopen('.env', 'r');
-        while ($line = fgets($fp)) {
-            putenv(str_replace(PHP_EOL, '', $line));
+        while (($line = fgets($fp)) !== false) {
+            if (strpos($line, '#') === false) {
+                echo $line;
+                putenv(str_replace(PHP_EOL, '', $line));
+            }
         }
     }
 

@@ -7,7 +7,6 @@ use pheonixsearch\types\IndexInterface;
 class Index extends Core
 {
     private $jsonObject = null;
-    private $jsonString = null;
 
     public function __construct(RequestHandler $requestHandler)
     {
@@ -29,5 +28,4 @@ class Index extends Core
     {
         $this->insertWord($word);
     }
-
 }

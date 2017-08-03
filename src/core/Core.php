@@ -5,7 +5,6 @@ namespace pheonixsearch\core;
 use pheonixsearch\exceptions\UriException;
 use pheonixsearch\storage\RedisConnector;
 use pheonixsearch\types\CoreInterface;
-use pheonixsearch\types\EntryInterface;
 use pheonixsearch\types\Errors;
 use Predis\Client;
 
