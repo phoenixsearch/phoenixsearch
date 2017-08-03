@@ -6,20 +6,20 @@ use pheonixsearch\core\RequestHandler;
 
 class Entry extends AbstractEntry
 {
-    private $requestMethod = '';
     private $requestHandler = null;
 
     public function __construct()
     {
         $this->requestHandler = new RequestHandler();
+        parent::__construct($this->requestHandler);
     }
 
     public function run()
     {
         call_user_func(
             [
-                $this, $this->getIndexMethod($this->requestMethod),
-            ], $this->requestHandler
+                $this, $this->getIndexMethod($this->requestHandler->getRequestMethod()),
+            ]
         );
     }
 }

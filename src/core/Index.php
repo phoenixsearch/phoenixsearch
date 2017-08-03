@@ -1,16 +1,18 @@
 <?php
+
 namespace pheonixsearch\core;
 
 use pheonixsearch\types\IndexInterface;
 
 class Index extends Core
 {
-    private $jsonObject     = null;
+    private $jsonObject = null;
+    private $jsonString = null;
 
-    public function __construct(array $uri, \stdClass $object, string $json)
+    public function __construct(RequestHandler $requestHandler)
     {
-        $this->jsonObject     = $object;
-        parent::__construct($uri, $object, $json);
+        $this->jsonObject = $requestHandler->getRequestBodyObject();
+        parent::__construct($requestHandler);
     }
 
     public function buildIndex()

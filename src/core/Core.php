@@ -11,22 +11,24 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
-    private $routePath = null;
+    private $routePath  = null;
     private $routeQuery = null;
 
-    private $index = '';
+    private $index     = '';
     private $indexType = '';
-    private $id = 0;
-    private $indexKey = '';
+    private $id        = 0;
+    private $indexKey  = '';
 
     /** @var Client $redisConn */
     private $redisConn = null;
+    /** @var RequestHandler $requestHandler */
+    private $requestHandler = null;
 
-    protected function __construct(array $uri, \stdClass $object, string $json)
+    protected function __construct(RequestHandler $handler)
     {
-        $this->redisConn = RedisConnector::getInstance();
-        $this->routePath  = $uri[EntryInterface::URI_PATH];
-        $this->routeQuery = $uri[EntryInterface::URI_QUERY];
+        $this->redisConn  = RedisConnector::getInstance();
+        $this->routePath  = $handler->getRoutePath();
+        $this->routeQuery = $handler->getRouteQuery();
         // parse index/type from path
         $pathArray = explode('/', $this->routePath);
         if (empty($pathArray[1]) === false) {
@@ -36,20 +38,22 @@ class Core implements CoreInterface
         } else {
             throw new UriException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_EMPTY_INDEX], Errors::REQUEST_URI_EMPTY_INDEX);
         }
+        $this->requestHandler = $handler;
         $this->setIndexKey();
     }
 
     protected function insertWord(string $word)
     {
         $wordHash = md5($word);
-        // todo: if the word is new construct mappings key_-_-_type md5(word) -> PK
-        $this->redisConn->lpush($this->indexKey . $wordHash, [$this->redisConn->incr($this->indexKey)]);
-        // todo: if the word is in storage then get the last PK from LIST and LPUT PK+1 with this doc
-
+        $lkey     = $this->indexKey . $wordHash; // index_-_-_type_-_-_md5(word)
+//        $lrange = $this->redisConn->lrange($lkey, 0, -1);
+        $incr = $this->redisConn->incr($this->indexKey);
+        $this->redisConn->lpush($lkey, [$incr]);
+        $this->redisConn->hset($this->indexKey, $incr, $this->requestHandler->getRequestBodyJson());
     }
 
     /**
-     *  Glues the index with indexType by glue, if there is no indexType
+     *  Glues the index with indexType by glue _-_-_, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
      */
     private function setIndexKey()

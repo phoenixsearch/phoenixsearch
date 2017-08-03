@@ -3,12 +3,14 @@
 namespace pheonixsearch\route;
 
 use pheonixsearch\core\Index;
+use pheonixsearch\core\RequestHandler;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
 
 abstract class AbstractEntry implements EntryInterface
 {
-    protected $path = '';
+    protected $path           = '';
+    private   $requestHandler = null;
 
     private $requestMethodMap = [
         HttpBase::HTTP_METHOD_GET    => HttpBase::HTTP_GET_METHOD,
@@ -16,6 +18,11 @@ abstract class AbstractEntry implements EntryInterface
         HttpBase::HTTP_METHOD_PUT    => HttpBase::HTTP_PUT_METHOD,
         HttpBase::HTTP_METHOD_DELETE => HttpBase::HTTP_DELETE_METHOD,
     ];
+
+    protected function __construct(RequestHandler $handler)
+    {
+        $this->requestHandler = $handler;
+    }
 
     /**
      *
@@ -29,14 +36,11 @@ abstract class AbstractEntry implements EntryInterface
     }
 
     /**
-     * @param array     $uri
-     * @param \stdClass $object
-     * @param string    $json
+     *
      */
-    protected function index(array $uri, \stdClass $object, string $json)
+    protected function index()
     {
-        $index = new Index($uri, $object);
-
+        $index = new Index($this->requestHandler);
     }
 
     /**
