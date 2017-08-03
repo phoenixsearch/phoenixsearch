@@ -25,7 +25,7 @@ class RedisConnector implements RedisInterface
     {
         static $instance = null;
         if (null === $instance) {
-            echo $scheme             = Environment::getEnv(self::REDIS_SCHEME);die;
+            $scheme             = Environment::getEnv(self::REDIS_SCHEME);
             $host               = Environment::getEnv(self::REDIS_HOST);
             $port               = Environment::getEnv(self::REDIS_PORT);
             $isRedisCluster     = Environment::getEnv(self::REDIS_CLUSTER);

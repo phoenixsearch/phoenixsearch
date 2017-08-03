@@ -11,5 +11,8 @@ namespace pheonixsearch\types;
 
 interface CoreInterface
 {
-    const INDEX_GLUE = '_-_-_';
+    const HASH_INDEX_GLUE   = ':';
+    const LIST_INDEX_GLUE   = '___';
+    const DOUBLE_QUOTES     = '"';
+    const DOUBLE_QUOTES_ESC = '\"';
 }

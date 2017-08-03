@@ -19,13 +19,8 @@ class Index extends Core
         foreach ($this->jsonObject as $key => $value) { // ex.: name => Alice Hacker
             $words = explode(IndexInterface::SYMBOL_SPACE, $value);
             foreach ($words as $word) {
-                $this->storeHashes($word);
+                $this->insertWord($word);
             }
         }
-    }
-
-    private function storeHashes(string $word)
-    {
-        $this->insertWord($word);
     }
 }

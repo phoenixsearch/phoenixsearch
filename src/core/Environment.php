@@ -6,13 +6,12 @@ use Closure;
 
 class Environment
 {
-    public function setEnvironment()
+    public static function setEnvironment()
     {
         $fp = fopen('.env', 'r');
         while (($line = fgets($fp)) !== false) {
-            if (strpos($line, '#') === false) {
-                echo $line;
-                putenv(str_replace(PHP_EOL, '', $line));
+            if ($line !== PHP_EOL && strpos($line, '#') === false) {
+                putenv(trim(str_replace(PHP_EOL, '', $line)));
             }
         }
     }
