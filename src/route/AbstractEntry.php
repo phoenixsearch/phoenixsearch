@@ -55,7 +55,7 @@ abstract class AbstractEntry implements EntryInterface
      */
     protected function update(array $uri, \stdClass $object, string $json)
     {
-        $index = new Index($uri, $object);
+        $index = new Index($uri, $object, $json);
         $index->buildIndex();
     }
 
