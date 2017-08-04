@@ -2,18 +2,30 @@
 
 namespace pheonixsearch\core;
 
+use pheonixsearch\types\IndexInterface;
+
 class Search extends Core
 {
-    private $jsonObject = null;
+    private $jsonArray       = null;
+    private $searchStructure = [];
 
     public function __construct(RequestHandler $requestHandler)
     {
-        $this->jsonObject = $requestHandler->getRequestBodyArray();
+        $this->jsonArray = $requestHandler->getRequestBodyArray();
         parent::__construct($requestHandler);
     }
 
     public function buildSearch()
     {
         $this->searchPhrase();
+    }
+
+    private function parseStructure()
+    {
+        foreach ($this->jsonArray as $key => $value) { // ex.: name => Alice Hacker
+            if ($key === IndexInterface::QUERY) {
+
+            }
+        }
     }
 }

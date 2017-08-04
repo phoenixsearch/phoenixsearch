@@ -11,4 +11,8 @@ namespace pheonixsearch\types;
 interface IndexInterface
 {
     const SYMBOL_SPACE = ' ';
+
+    // search query entities
+    const QUERY = 'query';
+    const TERM  = 'term';
 }
