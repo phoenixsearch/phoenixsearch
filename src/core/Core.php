@@ -46,13 +46,16 @@ class Core implements CoreInterface
     protected function insertWord(string $word)
     {
         $wordHash = md5($word);
+        $jsonArray = $this->requestHandler->getRequestBodyArray();
         $lkey     = $this->listIndexKey . $wordHash;
         $hkey     = $this->hashIndexKey . $wordHash;
 //        $lrange = $this->redisConn->lrange($lkey, 0, -1);
         $incr = $this->redisConn->incr($this->listIndexKey);
         $this->redisConn->lpush($lkey, [$incr]);
+        $jsonArray['_id'] = $incr;
+        $jsonArray['_timestamp'] = time();
         $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
-            serialize($this->requestHandler->getRequestBodyObject()));
+            serialize($jsonArray));
         $this->redisConn->hset($hkey, $incr, $jsonToStore);
     }
 

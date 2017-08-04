@@ -10,11 +10,11 @@ use pheonixsearch\types\HttpBase;
 
 class RequestHandler
 {
-    private $requestBodyJson   = '';
-    private $requestBodyObject = null;
-    private $routePath         = null;
-    private $routeQuery        = null;
-    private $requestMethod     = '';
+    private $requestBodyJson  = '';
+    private $requestBodyArray = null;
+    private $routePath        = null;
+    private $routeQuery       = null;
+    private $requestMethod    = '';
 
     public function __construct()
     {
@@ -24,7 +24,7 @@ class RequestHandler
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY], Errors::REQUEST_BODY_IS_EMPTY);
         }
         if ($this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
-            $this->setRequestBodyObject(Request::getJsonBody($this->requestBodyJson));
+            $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
         }
         $parsedUri        = parse_url($_SERVER['REQUEST_URI']);
         $this->setRoutePath(empty($parsedUri[EntryInterface::URI_PATH]) ? null : $parsedUri[EntryInterface::URI_PATH]);
@@ -82,17 +82,17 @@ class RequestHandler
     /**
      * @return mixed|null
      */
-    public function getRequestBodyObject()
+    public function getRequestBodyArray()
     {
-        return $this->requestBodyObject;
+        return $this->requestBodyArray;
     }
 
     /**
-     * @param mixed|null $requestBodyObject
+     * @param mixed|null $requestBodyArray
      */
-    public function setRequestBodyObject($requestBodyObject)
+    public function setRequestBodyArray($requestBodyArray)
     {
-        $this->requestBodyObject = $requestBodyObject;
+        $this->requestBodyArray = $requestBodyArray;
     }
 
     /**

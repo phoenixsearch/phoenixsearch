@@ -10,7 +10,7 @@ class Index extends Core
 
     public function __construct(RequestHandler $requestHandler)
     {
-        $this->jsonObject = $requestHandler->getRequestBodyObject();
+        $this->jsonObject = $requestHandler->getRequestBodyArray();
         parent::__construct($requestHandler);
     }
 
