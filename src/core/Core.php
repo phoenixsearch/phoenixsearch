@@ -46,7 +46,7 @@ class Core implements CoreInterface
     protected function insertWord(string $word)
     {
         $wordHash = md5($word);
-        $lkey     = $this->listIndexKey . $wordHash; // index_-_-_type_-_-_md5(word)
+        $lkey     = $this->listIndexKey . $wordHash;
         $hkey     = $this->hashIndexKey . $wordHash;
 //        $lrange = $this->redisConn->lrange($lkey, 0, -1);
         $incr = $this->redisConn->incr($this->listIndexKey);
@@ -54,6 +54,11 @@ class Core implements CoreInterface
         $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
             serialize($this->requestHandler->getRequestBodyObject()));
         $this->redisConn->hset($hkey, $incr, $jsonToStore);
+    }
+
+    protected function searchPhrase(string $phrase)
+    {
+
     }
 
     /**

@@ -11,4 +11,9 @@ class Search extends Core
         $this->jsonObject = $requestHandler->getRequestBodyObject();
         parent::__construct($requestHandler);
     }
+
+    public function buildSearch()
+    {
+        $this->searchPhrase();
+    }
 }
