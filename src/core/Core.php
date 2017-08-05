@@ -22,13 +22,14 @@ class Core implements CoreInterface
     private $hashIndexKey = '';
     private $listIndexKey = '';
 
-    private $matches = [];
     private $words = [];
 
     /** @var Client $redisConn */
     private $redisConn = null;
     /** @var RequestHandler $requestHandler */
     private $requestHandler = null;
+    /** @var StdFields $stdFields */
+    private $stdFields = null;
 
     protected function __construct(RequestHandler $handler)
     {
@@ -45,6 +46,7 @@ class Core implements CoreInterface
             throw new UriException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_EMPTY_INDEX], Errors::REQUEST_URI_EMPTY_INDEX);
         }
         $this->requestHandler = $handler;
+        $this->setStdFields();
         $this->setHashIndexKey();
         $this->setListIndexKey();
     }
@@ -78,19 +80,21 @@ class Core implements CoreInterface
                 $wordHash = md5($word);
                 $lkey     = $this->listIndexKey . $wordHash;
                 $lrange   = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-                $hkey     = $this->hashIndexKey . $wordHash;
-                $indices  = array_values($lrange);
-                $docs     = $this->redisConn->hmget($hkey, $indices);
-                if ($cntWords > 1) { // intersect search
-                    $result = $this->setMatches($docs, $value);
-                } else { // one word
-                    foreach ($docs as $doc) {
-                        $result[] = Json::parse($doc);
+                if (empty($lrange) === false) {
+                    $hkey    = $this->hashIndexKey . $wordHash;
+                    $indices = array_values($lrange);
+                    $docs    = $this->redisConn->hmget($hkey, $indices);
+                    if ($cntWords > 1) { // intersect search
+                        $result = $this->setMatches($docs, $value);
+                    } else { // one word
+                        foreach ($docs as $doc) {
+                            $result[] = Json::parse($doc);
+                        }
                     }
                 }
             }
         }
-        Output::json($result, $opts);
+        Output::jsonSearch($this->stdFields, $result, $opts);
     }
 
     private function setMatches(array $docs, string $phrase)
@@ -103,6 +107,7 @@ class Core implements CoreInterface
         }
         return $matched;
     }
+
     /**
      *  Glues the index with indexType by glue _-_-_, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
@@ -123,5 +128,13 @@ class Core implements CoreInterface
         $this->listIndexKey = $this->index . (empty($this->indexType)
                 ? self::LIST_INDEX_GLUE
                 : (self::LIST_INDEX_GLUE . $this->indexType . self::LIST_INDEX_GLUE));
+    }
+
+    private function setStdFields()
+    {
+        $this->stdFields        = new StdFields();
+        $this->stdFields->index = $this->index;
+        $this->stdFields->type  = $this->indexType;
+        $this->stdFields->id    = $this->id;
     }
 }
