@@ -5,6 +5,7 @@ namespace pheonixsearch\core;
 use pheonixsearch\exceptions\UriException;
 use pheonixsearch\helpers\Json;
 use pheonixsearch\helpers\Output;
+use pheonixsearch\helpers\Timers;
 use pheonixsearch\storage\RedisConnector;
 use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\Errors;
@@ -30,6 +31,9 @@ class Core implements CoreInterface
     private $requestHandler = null;
     /** @var StdFields $stdFields */
     private $stdFields = null;
+
+    private $docHashes = [];
+    private $result = [];
 
     protected function __construct(RequestHandler $handler)
     {
@@ -59,24 +63,23 @@ class Core implements CoreInterface
         $hkey      = $this->hashIndexKey . $wordHash;
         $incr      = $this->redisConn->incr($this->listIndexKey);
         $this->redisConn->lpush($lkey, [$incr]);
-        $jsonArray['_id']        = $incr;
-        $jsonArray['_timestamp'] = time();
-        $jsonToStore             = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
+//        $jsonArray['_timestamp'] = time(); // it brakes hash compare on intersection
+        $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
             serialize($jsonArray));
         $this->redisConn->hset($hkey, $incr, $jsonToStore);
     }
 
     protected function searchPhrase(array $fieldValue)
     {
-        $opts   = 0;
-        $result = [];
+        $opts = 0;
         if (CoreInterface::JSON_PRETTY_PRINT === $this->routeQuery) {
             $opts = JSON_PRETTY_PRINT;
         }
-        foreach ($fieldValue as $field => $value) {
-            $this->words = explode(IndexInterface::SYMBOL_SPACE, $value);
+        $tStart = Timers::millitime();
+        foreach ($fieldValue as $field => $phrase) {
+            $this->words = explode(IndexInterface::SYMBOL_SPACE, $phrase);
             $cntWords    = count($this->words);
-            foreach ($this->words as &$word) {
+            foreach ($this->words as &$word) { // perf by ref
                 $wordHash = md5($word);
                 $lkey     = $this->listIndexKey . $wordHash;
                 $lrange   = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
@@ -85,27 +88,43 @@ class Core implements CoreInterface
                     $indices = array_values($lrange);
                     $docs    = $this->redisConn->hmget($hkey, $indices);
                     if ($cntWords > 1) { // intersect search
-                        $result = $this->setMatches($docs, $value);
-                    } else { // one word
-                        foreach ($docs as $doc) {
-                            $result[] = Json::parse($doc);
-                        }
+                        $this->setMatches($docs, $phrase);
+                    } else if ($cntWords === 1) {
+                        $this->setMatch($docs);
                     }
                 }
             }
+            unset($this->docHashes);
         }
-        Output::jsonSearch($this->stdFields, $result, $opts);
+        $took = Timers::millitime() - $tStart;
+        $this->stdFields->setTook($took);
+        Output::jsonSearch($this->stdFields, $this->result, $opts);
     }
 
     private function setMatches(array $docs, string $phrase)
     {
-        $matched = [];
-        foreach ($docs as $index => &$doc) {
-            if (mb_strpos($doc, $phrase) !== false) {
-                $matched[] = Json::parse($doc);
+        foreach ($docs as $index => &$doc) { // perf by ref
+            $docHash = md5($doc);
+            if (mb_strpos($doc, $phrase) !== false && in_array($docHash, $this->docHashes) === false) {
+                $this->result[]    = [
+                    IndexInterface::INDEX  => $this->stdFields->getIndex(),
+                    IndexInterface::TYPE   => $this->stdFields->getType(),
+                    IndexInterface::SOURCE => Json::parse($doc),
+                ];
+                $this->docHashes[] = $docHash;
             }
         }
-        return $matched;
+    }
+
+    private function setMatch(array $docs)
+    {
+        foreach ($docs as &$doc) { // perf by ref
+            $this->result[] = [
+                IndexInterface::INDEX  => $this->stdFields->getIndex(),
+                IndexInterface::TYPE   => $this->stdFields->getType(),
+                IndexInterface::SOURCE => Json::parse($doc),
+            ];
+        }
     }
 
     /**
@@ -132,9 +151,8 @@ class Core implements CoreInterface
 
     private function setStdFields()
     {
-        $this->stdFields        = new StdFields();
-        $this->stdFields->index = $this->index;
-        $this->stdFields->type  = $this->indexType;
-        $this->stdFields->id    = $this->id;
+        $this->stdFields = new StdFields();
+        $this->stdFields->setIndex($this->index);
+        $this->stdFields->setType($this->indexType);
     }
 }

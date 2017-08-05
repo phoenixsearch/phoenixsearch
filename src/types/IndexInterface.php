@@ -15,4 +15,8 @@ interface IndexInterface
     // search query entities
     const QUERY = 'query';
     const TERM  = 'term';
+
+    const INDEX  = '_index';
+    const TYPE   = '_type';
+    const SOURCE = '_source';
 }
