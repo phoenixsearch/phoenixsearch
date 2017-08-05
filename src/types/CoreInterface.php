@@ -15,4 +15,9 @@ interface CoreInterface
     const LIST_INDEX_GLUE   = '___';
     const DOUBLE_QUOTES     = '"';
     const DOUBLE_QUOTES_ESC = '\"';
+
+    const LRANGE_DEFAULT_START = 0;
+    const LRANGE_DEFAULT_STOP  = -1;
+
+    const JSON_PRETTY_PRINT = 'pretty';
 }

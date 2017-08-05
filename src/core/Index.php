@@ -18,7 +18,7 @@ class Index extends Core
     {
         foreach ($this->jsonArray as &$value) { // ex.: name => Alice Hacker
             $words = explode(IndexInterface::SYMBOL_SPACE, $value);
-            foreach ($words as $word) {
+            foreach ($words as &$word) {
                 $this->insertWord($word);
             }
         }
