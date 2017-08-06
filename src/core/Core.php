@@ -4,7 +4,6 @@ namespace pheonixsearch\core;
 
 use pheonixsearch\exceptions\UriException;
 use pheonixsearch\helpers\Json;
-use pheonixsearch\helpers\Output;
 use pheonixsearch\helpers\Timers;
 use pheonixsearch\storage\RedisConnector;
 use pheonixsearch\types\CoreInterface;
@@ -22,6 +21,7 @@ class Core implements CoreInterface
     private $id = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
+    private $incrKey      = '';
 
     private $words = [];
 
@@ -32,9 +32,9 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes  = [];
+    private $docHashes = [];
     private $wordHashes = [];
-    private $result     = [];
+    private $result = [];
 
     protected function __construct(RequestHandler $handler)
     {
@@ -54,24 +54,28 @@ class Core implements CoreInterface
         $this->setStdFields();
         $this->setHashIndexKey();
         $this->setListIndexKey();
+        $this->setIncrKey();
     }
 
     protected function insertWord(string $word)
     {
-        $wordHash  = md5($word);
+        $wordHash = md5($word);
         // prevent doubling repeated words
         if (in_array($wordHash, $this->wordHashes) === false) {
             $this->wordHashes[] = $wordHash;
-            $jsonArray = $this->requestHandler->getRequestBodyArray();
-            $lkey      = $this->listIndexKey . $wordHash;
-            $hkey      = $this->hashIndexKey . $wordHash;
-            $incr      = $this->redisConn->incr($this->listIndexKey);
+            $jsonArray          = $this->requestHandler->getRequestBodyArray();
+            $lkey               = $this->listIndexKey . $wordHash;
+            $hkey               = $this->hashIndexKey . $wordHash;
+            $incr               = $this->redisConn->incr($this->listIndexKey);
             $this->redisConn->lpush($lkey, [$incr]);
 //        $jsonArray['_timestamp'] = time(); // it brakes hash compare on intersection
-            $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
+            $doc = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
                 serialize($jsonArray));
-            $this->redisConn->hset($hkey, $incr, $jsonToStore);
+            $this->redisConn->hset($hkey, $incr, $doc);
             $this->stdFields->setCreated(true);
+            if ($this->stdFields->getId() === 0) {
+                $this->setIndexId($doc);
+            }
         }
     }
 
@@ -140,6 +144,12 @@ class Core implements CoreInterface
                 : (self::HASH_INDEX_GLUE . $this->indexType . self::HASH_INDEX_GLUE));
     }
 
+    private function setIncrKey()
+    {
+        $this->incrKey = $this->index . (empty($this->indexType) ? ''
+                : (self::HASH_INDEX_GLUE . $this->indexType . ''));
+    }
+
     /**
      *  Glues the index with indexType by glue _-_-_, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
@@ -166,5 +176,16 @@ class Core implements CoreInterface
     public function getStdFields()
     {
         return $this->stdFields;
+    }
+
+    private function setIndexId(string $doc)
+    {
+        $docSha = sha1($doc);
+        $id     = $this->redisConn->hget($this->incrKey, $docSha);
+        if (empty($id)) {
+            $id = $this->redisConn->incr($this->hashIndexKey);
+            $this->redisConn->hset($this->incrKey, $docSha, $id);
+        }
+        $this->stdFields->setId($id);
     }
 }
