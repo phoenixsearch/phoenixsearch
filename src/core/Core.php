@@ -112,9 +112,11 @@ class Core implements CoreInterface
         foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc);
             if (mb_strpos($doc, $phrase) !== false && in_array($docHash, $this->docHashes) === false) {
+                $this->setIndexId($doc);
                 $this->result[]    = [
                     IndexInterface::INDEX  => $this->stdFields->getIndex(),
                     IndexInterface::TYPE   => $this->stdFields->getType(),
+                    IndexInterface::ID     => $this->stdFields->getId(),
                     IndexInterface::SOURCE => Json::parse($doc),
                 ];
                 $this->docHashes[] = $docHash;
@@ -128,6 +130,7 @@ class Core implements CoreInterface
             $this->result[] = [
                 IndexInterface::INDEX  => $this->stdFields->getIndex(),
                 IndexInterface::TYPE   => $this->stdFields->getType(),
+                IndexInterface::ID     => $this->stdFields->getId(),
                 IndexInterface::SOURCE => Json::parse($doc),
             ];
         }
