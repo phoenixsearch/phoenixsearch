@@ -50,7 +50,7 @@ abstract class AbstractEntry implements EntryInterface
     protected function search()
     {
         $search = new Search($this->requestHandler);
-        $search->buildSearch();
+        $search->performSearch();
     }
 
     /**

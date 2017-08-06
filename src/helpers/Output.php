@@ -1,27 +1,40 @@
 <?php
+
 namespace pheonixsearch\helpers;
 
 use pheonixsearch\core\StdFields;
+use pheonixsearch\types\IndexInterface;
 
 class Output
 {
-    public static function jsonSearch(StdFields $stdFields, array $arr, $opts = 0)
+    public static function jsonSearch(StdFields $stdFields)
     {
-        $total    = count($arr);
         $response = [
-            'took'      => $stdFields->getTook(),
-            'timed_out' => $stdFields->isTimedOut(),
-            'hits'      => [
-                'total' => $total,
-                'hits'  => $arr,
+            IndexInterface::TOOK      => $stdFields->getTook(),
+            IndexInterface::TIMED_OUT => $stdFields->isTimedOut(),
+            IndexInterface::HITS      => [
+                IndexInterface::TOOK => $stdFields->getTotal(),
+                IndexInterface::HITS => $stdFields->getHits(),
             ],
         ];
-        echo Json::encode($response, $opts);
-        exit(0);
+        static::out($response, $stdFields);
     }
 
-    public static function construct()
+    public static function jsonIndex(StdFields $stdFields)
     {
+        $response = [
+            IndexInterface::TOOK    => $stdFields->getTook(),
+            IndexInterface::INDEX   => $stdFields->getIndex(),
+            IndexInterface::TYPE    => $stdFields->getType(),
+            IndexInterface::CREATED => $stdFields->getIndex(),
+            IndexInterface::ID      => $stdFields->getId(),
+        ];
+        static::out($response, $stdFields);
+    }
 
+    public static function out(array $response, StdFields $stdFields)
+    {
+        echo Json::encode($response, $stdFields->getOpts());
+        exit(0);
     }
 }

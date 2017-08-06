@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\core;
 
+use pheonixsearch\helpers\Output;
 use pheonixsearch\types\IndexInterface;
 
 class Search extends Core
@@ -14,10 +15,11 @@ class Search extends Core
         parent::__construct($requestHandler);
     }
 
-    public function buildSearch()
+    public function performSearch()
     {
         $fieldValueMap = $this->parseStructure();
         $this->searchPhrase($fieldValueMap);
+        Output::jsonSearch($this->getStdFields());
     }
 
     private function parseStructure()

@@ -32,8 +32,9 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes = [];
-    private $result = [];
+    private $docHashes  = [];
+    private $wordHashes = [];
+    private $result     = [];
 
     protected function __construct(RequestHandler $handler)
     {
@@ -58,23 +59,24 @@ class Core implements CoreInterface
     protected function insertWord(string $word)
     {
         $wordHash  = md5($word);
-        $jsonArray = $this->requestHandler->getRequestBodyArray();
-        $lkey      = $this->listIndexKey . $wordHash;
-        $hkey      = $this->hashIndexKey . $wordHash;
-        $incr      = $this->redisConn->incr($this->listIndexKey);
-        $this->redisConn->lpush($lkey, [$incr]);
+        // prevent doubling repeated words
+        if (in_array($wordHash, $this->wordHashes) === false) {
+            $this->wordHashes[] = $wordHash;
+            $jsonArray = $this->requestHandler->getRequestBodyArray();
+            $lkey      = $this->listIndexKey . $wordHash;
+            $hkey      = $this->hashIndexKey . $wordHash;
+            $incr      = $this->redisConn->incr($this->listIndexKey);
+            $this->redisConn->lpush($lkey, [$incr]);
 //        $jsonArray['_timestamp'] = time(); // it brakes hash compare on intersection
-        $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
-            serialize($jsonArray));
-        $this->redisConn->hset($hkey, $incr, $jsonToStore);
+            $jsonToStore = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
+                serialize($jsonArray));
+            $this->redisConn->hset($hkey, $incr, $jsonToStore);
+            $this->stdFields->setCreated(true);
+        }
     }
 
     protected function searchPhrase(array $fieldValue)
     {
-        $opts = 0;
-        if (CoreInterface::JSON_PRETTY_PRINT === $this->routeQuery) {
-            $opts = JSON_PRETTY_PRINT;
-        }
         $tStart = Timers::millitime();
         foreach ($fieldValue as $field => $phrase) {
             $this->words = explode(IndexInterface::SYMBOL_SPACE, $phrase);
@@ -98,7 +100,7 @@ class Core implements CoreInterface
         }
         $took = Timers::millitime() - $tStart;
         $this->stdFields->setTook($took);
-        Output::jsonSearch($this->stdFields, $this->result, $opts);
+        $this->stdFields->setHits($this->result);
     }
 
     private function setMatches(array $docs, string $phrase)
@@ -128,7 +130,7 @@ class Core implements CoreInterface
     }
 
     /**
-     *  Glues the index with indexType by glue _-_-_, if there is no indexType
+     *  Glues the index with indexType by glue :, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
      */
     private function setHashIndexKey()
@@ -154,5 +156,15 @@ class Core implements CoreInterface
         $this->stdFields = new StdFields();
         $this->stdFields->setIndex($this->index);
         $this->stdFields->setType($this->indexType);
+        $opts = 0;
+        if (CoreInterface::JSON_PRETTY_PRINT === $this->routeQuery) {
+            $opts = JSON_PRETTY_PRINT;
+        }
+        $this->stdFields->setOpts($opts);
+    }
+
+    public function getStdFields()
+    {
+        return $this->stdFields;
     }
 }

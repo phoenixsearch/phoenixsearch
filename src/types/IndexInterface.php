@@ -16,7 +16,15 @@ interface IndexInterface
     const QUERY = 'query';
     const TERM  = 'term';
 
-    const INDEX  = '_index';
-    const TYPE   = '_type';
-    const SOURCE = '_source';
+    // response - StdFields
+    const TOOK      = 'took';
+    const TIMED_OUT = 'timed_out';
+    const HITS      = 'hits';
+    const TOTAL     = 'total';
+    // system reserved keywords
+    const INDEX     = '_index';
+    const TYPE      = '_type';
+    const SOURCE    = '_source';
+    const CREATED   = '_created';
+    const ID        = '_id';
 }
