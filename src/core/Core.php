@@ -21,7 +21,7 @@ class Core implements CoreInterface
     private $id = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
-    private $incrKey      = '';
+    private $incrKey = '';
 
     private $words = [];
 
@@ -74,7 +74,7 @@ class Core implements CoreInterface
             $this->redisConn->hset($hkey, $incr, $doc);
             $this->stdFields->setCreated(true);
             if ($this->stdFields->getId() === 0) {
-                $this->setIndexId($doc);
+                $this->setIndexData($doc);
             }
         }
     }
@@ -112,12 +112,13 @@ class Core implements CoreInterface
         foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc);
             if (mb_strpos($doc, $phrase) !== false && in_array($docHash, $this->docHashes) === false) {
-                $this->setIndexId($doc);
+                $this->setIndexData($doc);
                 $this->result[]    = [
-                    IndexInterface::INDEX  => $this->stdFields->getIndex(),
-                    IndexInterface::TYPE   => $this->stdFields->getType(),
-                    IndexInterface::ID     => $this->stdFields->getId(),
-                    IndexInterface::SOURCE => Json::parse($doc),
+                    IndexInterface::INDEX     => $this->stdFields->getIndex(),
+                    IndexInterface::TYPE      => $this->stdFields->getType(),
+                    IndexInterface::ID        => $this->stdFields->getId(),
+                    IndexInterface::TIMESTAMP => $this->stdFields->getTimestamp(),
+                    IndexInterface::SOURCE    => Json::parse($doc),
                 ];
                 $this->docHashes[] = $docHash;
             }
@@ -181,14 +182,20 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
-    private function setIndexId(string $doc)
+    private function setIndexData(string $doc)
     {
         $docSha = sha1($doc);
-        $id     = $this->redisConn->hget($this->incrKey, $docSha);
-        if (empty($id)) {
-            $id = $this->redisConn->incr($this->hashIndexKey);
-            $this->redisConn->hset($this->incrKey, $docSha, $id);
+        $data   = unserialize($this->redisConn->hget($this->incrKey, $docSha));
+        if (empty($data)) {
+            $id   = $this->redisConn->incr($this->hashIndexKey);
+            $t    = time();
+            $data = [
+                IndexInterface::ID        => $id,
+                IndexInterface::TIMESTAMP => $t,
+            ];
+            $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
         }
-        $this->stdFields->setId($id);
+        $this->stdFields->setId($data[IndexInterface::ID]);
+        $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
     }
 }

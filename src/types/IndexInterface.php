@@ -27,4 +27,5 @@ interface IndexInterface
     const SOURCE    = '_source';
     const CREATED   = '_created';
     const ID        = '_id';
+    const TIMESTAMP = '_timestamp';
 }

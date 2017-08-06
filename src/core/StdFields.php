@@ -11,6 +11,8 @@ class StdFields
     private $type    = '';
     // internal _id for output on indexing
     private $id = 0;
+
+    private $timestamp = 0;
     // total docs found
     private $total   = 0;
 
@@ -165,5 +167,21 @@ class StdFields
     public function setId(int $id)
     {
         $this->id = $id;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTimestamp(): int
+    {
+        return $this->timestamp;
+    }
+
+    /**
+     * @param int $timestamp
+     */
+    public function setTimestamp(int $timestamp)
+    {
+        $this->timestamp = $timestamp;
     }
 }
