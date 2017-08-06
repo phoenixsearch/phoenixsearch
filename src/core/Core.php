@@ -105,6 +105,7 @@ class Core implements CoreInterface
         $took = Timers::millitime() - $tStart;
         $this->stdFields->setTook($took);
         $this->stdFields->setHits($this->result);
+        $this->stdFields->setTotal(count($this->result));
     }
 
     private function setMatches(array $docs, string $phrase)

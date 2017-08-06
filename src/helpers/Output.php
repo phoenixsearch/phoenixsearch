@@ -13,8 +13,8 @@ class Output
             IndexInterface::TOOK      => $stdFields->getTook(),
             IndexInterface::TIMED_OUT => $stdFields->isTimedOut(),
             IndexInterface::HITS      => [
-                IndexInterface::TOOK => $stdFields->getTotal(),
-                IndexInterface::HITS => $stdFields->getHits(),
+                IndexInterface::TOTAL => $stdFields->getTotal(),
+                IndexInterface::HITS  => $stdFields->getHits(),
             ],
         ];
         static::out($response, $stdFields);
