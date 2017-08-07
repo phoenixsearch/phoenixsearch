@@ -64,10 +64,10 @@ class Core implements CoreInterface
         if (in_array($wordHash, $this->wordHashes) === false) {
             $this->wordHashes[] = $wordHash;
             $jsonArray          = $this->requestHandler->getRequestBodyArray();
-            $lkey               = $this->listIndexKey . $wordHash;
+            $lKey               = $this->listIndexKey . $wordHash;
             $hkey               = $this->hashIndexKey . $wordHash;
             $incr               = $this->redisConn->incr($this->listIndexKey);
-            $this->redisConn->lpush($lkey, [$incr]);
+            $this->redisConn->lpush($lKey, [$incr]);
             $doc = str_replace(
                 self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
                 serialize($jsonArray)
@@ -75,7 +75,7 @@ class Core implements CoreInterface
             $this->redisConn->hset($hkey, $incr, $doc);
             $this->stdFields->setCreated(true);
             if ($this->stdFields->getId() === 0) {
-                $this->setIndexData($doc, $word);
+                $this->setIndexData($doc, $lKey);
             }
         }
     }
@@ -187,7 +187,7 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
-    private function setIndexData(string $doc, string $wordHash = '')
+    private function setIndexData(string $doc, string $lKey = '')
     {
         $data        = [];
         $wordIndices = [];
@@ -197,12 +197,10 @@ class Core implements CoreInterface
         if (empty($docShaData) === false) {
             $data = unserialize($docShaData);
         }
-        if ('' !== $wordHash) {
-            $lkey  = $this->listIndexKey . $wordHash;
-            $range = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-            if (empty($range)) {
-                $lrange      = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-                $indices     = array_values($lrange);
+        if ('' !== $lKey) {
+            $range = $this->redisConn->lrange($lKey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
+            if (empty($range) === false) {
+                $indices     = array_values($range);
                 $wordIndices = empty($data[IndexInterface::WORD_INDICES]) ? $indices :
                     array_diff($indices, $data[IndexInterface::WORD_INDICES]);
             }
