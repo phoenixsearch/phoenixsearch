@@ -13,15 +13,15 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
-    private $routePath = null;
+    private $routePath  = null;
     private $routeQuery = null;
 
-    private $index = '';
-    private $indexType = '';
-    private $id = 0;
+    private $index        = '';
+    private $indexType    = '';
+    private $id           = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
-    private $incrKey = '';
+    private $incrKey      = '';
 
     private $words = [];
 
@@ -32,9 +32,9 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes = [];
+    private $docHashes  = [];
     private $wordHashes = [];
-    private $result = [];
+    private $result     = [];
 
     protected function __construct(RequestHandler $handler)
     {
@@ -68,13 +68,14 @@ class Core implements CoreInterface
             $hkey               = $this->hashIndexKey . $wordHash;
             $incr               = $this->redisConn->incr($this->listIndexKey);
             $this->redisConn->lpush($lkey, [$incr]);
-//        $jsonArray['_timestamp'] = time(); // it brakes hash compare on intersection
-            $doc = str_replace(self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
-                serialize($jsonArray));
+            $doc = str_replace(
+                self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
+                serialize($jsonArray)
+            );
             $this->redisConn->hset($hkey, $incr, $doc);
             $this->stdFields->setCreated(true);
             if ($this->stdFields->getId() === 0) {
-                $this->setIndexData($doc);
+                $this->setIndexData($doc, $word);
             }
         }
     }
@@ -95,8 +96,10 @@ class Core implements CoreInterface
                     $docs    = $this->redisConn->hmget($hkey, $indices);
                     if ($cntWords > 1) { // intersect search
                         $this->setMatches($docs, $phrase);
-                    } else if ($cntWords === 1) {
-                        $this->setMatch($docs);
+                    } else {
+                        if ($cntWords === 1) {
+                            $this->setMatch($docs);
+                        }
                     }
                 }
             }
@@ -129,6 +132,7 @@ class Core implements CoreInterface
     private function setMatch(array $docs)
     {
         foreach ($docs as &$doc) { // perf by ref
+            $this->setIndexData($doc);
             $this->result[] = [
                 IndexInterface::INDEX  => $this->stdFields->getIndex(),
                 IndexInterface::TYPE   => $this->stdFields->getType(),
@@ -183,16 +187,34 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
-    private function setIndexData(string $doc)
+    private function setIndexData(string $doc, string $wordHash = '')
     {
-        $docSha = sha1($doc);
-        $data   = unserialize($this->redisConn->hget($this->incrKey, $docSha));
-        if (empty($data)) {
+        $data        = [];
+        $wordIndices = [];
+        $indices     = [];
+        $docSha      = sha1($doc);
+        $docShaData  = $this->redisConn->hget($this->incrKey, $docSha);
+        if (empty($docShaData) === false) {
+            $data = unserialize($docShaData);
+        }
+        if ('' !== $wordHash) {
+            $lkey  = $this->listIndexKey . $wordHash;
+            $range = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
+            if (empty($range)) {
+                $lrange      = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
+                $indices     = array_values($lrange);
+                $wordIndices = empty($data[IndexInterface::WORD_INDICES]) ? $indices :
+                    array_diff($indices, $data[IndexInterface::WORD_INDICES]);
+            }
+        }
+        // insert new hashed doc with incr ID and DATA or fulfill _word_indices if there are more
+        if (empty($data) || empty($wordIndices) === false) {
             $id   = $this->redisConn->incr($this->hashIndexKey);
             $t    = time();
             $data = [
-                IndexInterface::ID        => $id,
-                IndexInterface::TIMESTAMP => $t,
+                IndexInterface::ID           => $id,
+                IndexInterface::TIMESTAMP    => $t,
+                IndexInterface::WORD_INDICES => $indices,
             ];
             $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
         }

@@ -22,10 +22,11 @@ interface IndexInterface
     const HITS      = 'hits';
     const TOTAL     = 'total';
     // system reserved keywords
-    const INDEX     = '_index';
-    const TYPE      = '_type';
-    const SOURCE    = '_source';
-    const CREATED   = '_created';
-    const ID        = '_id';
-    const TIMESTAMP = '_timestamp';
+    const INDEX        = '_index';
+    const TYPE         = '_type';
+    const SOURCE       = '_source';
+    const CREATED      = '_created';
+    const ID           = '_id';
+    const TIMESTAMP    = '_timestamp';
+    const WORD_INDICES = '_word_indices';
 }
