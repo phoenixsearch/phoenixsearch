@@ -29,4 +29,6 @@ interface IndexInterface
     const ID           = '_id';
     const TIMESTAMP    = '_timestamp';
     const WORD_INDICES = '_word_indices';
+
+    const ID_DOC_MATCH = 'MATCHING';
 }

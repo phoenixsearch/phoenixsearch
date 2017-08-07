@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\core;
 
+use Mockery\Configuration;
 use pheonixsearch\exceptions\UriException;
 use pheonixsearch\helpers\Json;
 use pheonixsearch\helpers\Timers;
@@ -13,15 +14,15 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
-    private $routePath  = null;
+    private $routePath = null;
     private $routeQuery = null;
 
-    private $index        = '';
-    private $indexType    = '';
-    private $id           = 0;
+    private $index = '';
+    private $indexType = '';
+    private $id = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
-    private $incrKey      = '';
+    private $incrKey = '';
 
     private $words = [];
 
@@ -32,9 +33,9 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes  = [];
+    private $docHashes = [];
     private $wordHashes = [];
-    private $result     = [];
+    private $result = [];
 
     protected function __construct(RequestHandler $handler)
     {
@@ -109,6 +110,21 @@ class Core implements CoreInterface
         $this->stdFields->setTook($took);
         $this->stdFields->setHits($this->result);
         $this->stdFields->setTotal(count($this->result));
+    }
+
+    protected function deleteDocument()
+    {
+        $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+        // save id -> key for fast delete/update ops
+        $docHash = $this->redisConn->hget($incrMatch, $this->id);
+        $docData = $this->redisConn->hget($this->incrKey, $docHash);
+
+        // delete list
+
+        // delete doc match
+        $this->redisConn->hdel($incrMatch, [$this->id]);
+        // delete doc data
+        $this->redisConn->hdel($this->incrKey, [$docHash]);
     }
 
     private function setMatches(array $docs, string $phrase)
@@ -214,6 +230,9 @@ class Core implements CoreInterface
                 IndexInterface::TIMESTAMP    => $t,
                 IndexInterface::WORD_INDICES => $indices,
             ];
+            $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+            // save id -> key for fast delete/update ops
+            $this->redisConn->hset($incrMatch, $id, $docSha);
             $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
         }
         $this->stdFields->setId($data[IndexInterface::ID]);

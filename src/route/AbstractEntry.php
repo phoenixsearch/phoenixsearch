@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\route;
 
+use pheonixsearch\core\Delete;
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\Search;
@@ -67,6 +68,7 @@ abstract class AbstractEntry implements EntryInterface
      */
     protected function delete()
     {
-
+        $delete = new Delete($this->requestHandler);
+        $delete->delete();
     }
 }
