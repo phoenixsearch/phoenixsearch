@@ -119,7 +119,7 @@ class Core implements CoreInterface
         $docHash = $this->redisConn->hget($incrMatch, $this->id);
         $docData = $this->redisConn->hget($this->incrKey, $docHash);
 
-        // delete list
+        // delete list by doc hash
 
         // delete doc match
         $this->redisConn->hdel($incrMatch, [$this->id]);

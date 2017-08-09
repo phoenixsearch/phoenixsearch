@@ -20,8 +20,10 @@ class RequestHandler
     {
         $this->setRequestMethod($_SERVER['REQUEST_METHOD']);
         $this->setRequestBodyJson(Request::getJsonString());
-        if (empty($this->requestBodyJson)) {
-            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY], Errors::REQUEST_BODY_IS_EMPTY);
+        if (empty($this->requestBodyJson) && in_array($this->requestMethod,
+                [HttpBase::HTTP_METHOD_GET, HttpBase::HTTP_METHOD_DELETE]) === false) {
+            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY],
+                Errors::REQUEST_BODY_IS_EMPTY);
         }
         if ($this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
