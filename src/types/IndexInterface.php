@@ -22,13 +22,15 @@ interface IndexInterface
     const HITS      = 'hits';
     const TOTAL     = 'total';
     // system reserved keywords
-    const INDEX        = '_index';
-    const TYPE         = '_type';
-    const SOURCE       = '_source';
-    const CREATED      = '_created';
-    const ID           = '_id';
-    const TIMESTAMP    = '_timestamp';
-    const WORD_INDICES = '_word_indices';
+    const INDEX          = '_index';
+    const TYPE           = '_type';
+    const SOURCE         = '_source';
+    const CREATED        = '_created';
+    const ID             = '_id';
+    const TIMESTAMP      = '_timestamp';
+    const WORD_INDICES   = '_word_indices';
+    const LIST_WORDS_KEY = '_list_words_key';
+    const HASH_WORDS_KEY = '_hash_words_key';
 
     const ID_DOC_MATCH = 'MATCHING';
 }

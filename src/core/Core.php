@@ -37,6 +37,11 @@ class Core implements CoreInterface
     private $wordHashes = [];
     private $result = [];
 
+    private $requestDocument = '';
+
+    private $listWordKeys = [];
+    private $listHashKeys = [];
+
     protected function __construct(RequestHandler $handler)
     {
         $this->redisConn  = RedisConnector::getInstance();
@@ -66,14 +71,14 @@ class Core implements CoreInterface
             $this->wordHashes[] = $wordHash;
             $jsonArray          = $this->requestHandler->getRequestBodyArray();
             $lKey               = $this->listIndexKey . $wordHash;
-            $hkey               = $this->hashIndexKey . $wordHash;
+            $hKey               = $this->hashIndexKey . $wordHash;
             $incr               = $this->redisConn->incr($this->listIndexKey);
             $this->redisConn->lpush($lKey, [$incr]);
             $doc = str_replace(
                 self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
                 serialize($jsonArray)
             );
-            $this->redisConn->hset($hkey, $incr, $doc);
+            $this->redisConn->hset($hKey, $incr, $doc);
             $this->stdFields->setCreated(true);
             if ($this->stdFields->getId() === 0) {
                 $this->setIndexData($doc, $lKey);
@@ -117,10 +122,10 @@ class Core implements CoreInterface
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         // save id -> key for fast delete/update ops
         $docHash = $this->redisConn->hget($incrMatch, $this->id);
-        $docData = $this->redisConn->hget($this->incrKey, $docHash);
-
-        // delete list by doc hash
-
+        $docData = unserialize($this->redisConn->hget($this->incrKey, $docHash));
+        // delete list by doc hash stored array of word indices
+        $wordsToDocArray = $this->redisConn->lrange($docData[IndexInterface::LIST_WORDS_KEY], 0, -1);
+        $this->redisConn->hdel($docData[IndexInterface::HASH_WORDS_KEY], $wordsToDocArray);
         // delete doc match
         $this->redisConn->hdel($incrMatch, [$this->id]);
         // delete doc data
@@ -237,5 +242,11 @@ class Core implements CoreInterface
         }
         $this->stdFields->setId($data[IndexInterface::ID]);
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
+    }
+
+    protected function setDictHashData()
+    {
+        $docSha      = sha1($doc);
+        $docShaData  = $this->redisConn->hget($this->incrKey, $docSha);
     }
 }

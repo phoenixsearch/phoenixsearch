@@ -26,9 +26,9 @@ class Index extends Core
             }
         }
         $took = Timers::millitime() - $tStart;
+        $this->setDictHashData();
         $stdFields = $this->getStdFields();
         $stdFields->setTook($took);
-        $stdFields->setCreated(true);
         Output::jsonIndex($stdFields);
     }
 }
