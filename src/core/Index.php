@@ -14,6 +14,7 @@ class Index extends Core
     {
         $this->jsonArray = $requestHandler->getRequestBodyArray();
         parent::__construct($requestHandler);
+        $this->setRequestDocument();
     }
 
     public function buildIndex()
