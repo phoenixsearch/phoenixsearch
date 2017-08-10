@@ -25,9 +25,17 @@ interface IndexInterface
     const INDEX          = '_index';
     const TYPE           = '_type';
     const SOURCE         = '_source';
-    const CREATED        = '_created';
     const ID             = '_id';
     const TIMESTAMP      = '_timestamp';
+    const RESULT         = 'result';
+
+    // op results
+    const RESULT_DELETED   = 'deleted';
+    const RESULT_CREATED   = 'created';
+    const RESULT_FOUND     = 'found';
+    const RESULT_NOT_FOUND = 'not found';
+
+    // arrays to hold hash keys
     const WORD_INDICES   = '_word_indices';
     const LIST_WORDS_KEY = '_list_words_key';
     const HASH_WORDS_KEY = '_hash_words_key';

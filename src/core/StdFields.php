@@ -25,6 +25,13 @@ class StdFields
     private $opts = 0;
     // source doc(s) mined by search or inserted by index
     private $hits = [];
+    // resulting operation
+    private $result = '';
+    // operation type
+    private $opType = '';
+    // operation status
+    private $opStatus = false;
+
     /**
      * @return int
      */
@@ -183,5 +190,53 @@ class StdFields
     public function setTimestamp(int $timestamp)
     {
         $this->timestamp = $timestamp;
+    }
+
+    /**
+     * @return string
+     */
+    public function getResult(): string
+    {
+        return $this->result;
+    }
+
+    /**
+     * @param string $result
+     */
+    public function setResult(string $result)
+    {
+        $this->result = $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOpType(): string
+    {
+        return $this->opType;
+    }
+
+    /**
+     * @param string $opType
+     */
+    public function setOpType(string $opType)
+    {
+        $this->opType = $opType;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOpStatus(): bool
+    {
+        return $this->opStatus;
+    }
+
+    /**
+     * @param bool $opStatus
+     */
+    public function setOpStatus(bool $opStatus)
+    {
+        $this->opStatus = $opStatus;
     }
 }

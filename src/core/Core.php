@@ -75,7 +75,6 @@ class Core implements CoreInterface
             $incr                 = $this->redisConn->incr($this->listIndexKey);
             $this->redisConn->lpush($lKey, [$incr]);
             $this->redisConn->hset($hKey, $incr, $this->requestDocument);
-            $this->stdFields->setCreated(true);
             if ($this->stdFields->getId() === 0) {
                 $this->setIndexData($lKey);
             }
@@ -119,14 +118,22 @@ class Core implements CoreInterface
         // save id -> key for fast delete/update ops
         $docHash = $this->redisConn->hget($incrMatch, $this->id);
         $docData = unserialize($this->redisConn->hget($this->incrKey, $docHash));
-        // loop through saved index_key_md5(word) list and delete them
-        $this->redisConn->del($docData[IndexInterface::LIST_WORDS_KEY]);
-        // loop through saved index:key:md5(word) hashes and delete them
-        $this->redisConn->del($docData[IndexInterface::HASH_WORDS_KEY]);
-        // delete doc match
-        $this->redisConn->hdel($incrMatch, [$this->id]);
-        // delete doc data
-        $this->redisConn->hdel($this->incrKey, [$docHash]);
+        $this->stdFields->setOpType(IndexInterface::RESULT_FOUND);
+        $this->stdFields->setOpStatus(false);
+        $this->stdFields->setResult(IndexInterface::RESULT_NOT_FOUND);
+        if (empty($docData) === false) {
+            $this->stdFields->setOpType(IndexInterface::RESULT_FOUND);
+            $this->stdFields->setOpStatus(true);
+            // loop through saved index_key_md5(word) list and delete them
+            $this->redisConn->del($docData[IndexInterface::LIST_WORDS_KEY]);
+            // loop through saved index:key:md5(word) hashes and delete them
+            $this->redisConn->del($docData[IndexInterface::HASH_WORDS_KEY]);
+            // delete doc match
+            $this->redisConn->hdel($incrMatch, [$this->id]);
+            // delete doc data
+            $this->redisConn->hdel($this->incrKey, [$docHash]);
+            $this->stdFields->setResult(IndexInterface::RESULT_DELETED);
+        }
 
         $this->stdFields->setIndex($this->index);
         $this->stdFields->setType($this->indexType);

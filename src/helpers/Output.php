@@ -23,11 +23,12 @@ class Output
     public static function jsonIndex(StdFields $stdFields)
     {
         $response = [
+            $stdFields->getOpType() => $stdFields->isOpStatus(),
             IndexInterface::TOOK    => $stdFields->getTook(),
             IndexInterface::INDEX   => $stdFields->getIndex(),
             IndexInterface::TYPE    => $stdFields->getType(),
-            IndexInterface::CREATED => $stdFields->getIndex(),
             IndexInterface::ID      => $stdFields->getId(),
+            IndexInterface::RESULT  => $stdFields->getResult(),
         ];
         static::out($response, $stdFields);
     }

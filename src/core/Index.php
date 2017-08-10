@@ -30,6 +30,9 @@ class Index extends Core
         $this->setDictHashData();
         $stdFields = $this->getStdFields();
         $stdFields->setTook($took);
+        $stdFields->setOpType(IndexInterface::RESULT_CREATED);
+        $stdFields->setOpStatus(true);
+        $stdFields->setResult(IndexInterface::RESULT_CREATED);
         Output::jsonIndex($stdFields);
     }
 }
