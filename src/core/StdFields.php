@@ -33,6 +33,8 @@ class StdFields
     private $opStatus = false;
     // version of document
     private $version = 1;
+    // bit mask with OP_TYPE, TOOK, INDEX, TYPE, ID set by default
+    private $fieldsBitMask = 0b000011111;
 
     /**
      * @return int
@@ -256,5 +258,39 @@ class StdFields
     public function setVersion(int $version)
     {
         $this->version = $version;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFieldsBitMask(): int
+    {
+        return $this->fieldsBitMask;
+    }
+
+    /**
+     * @param int $bit
+     */
+    public function setFieldsBitMask(int $bit)
+    {
+        $this->fieldsBitMask |= $bit;
+    }
+
+    /**
+     * @param int $bit
+     */
+    public function unsetFieldsBitMask(int $bit)
+    {
+        $this->fieldsBitMask &= ~$bit;
+    }
+
+    /**
+     * @param int $bits
+     *
+     * @return bool
+     */
+    public function isBitSet(int $bits): bool
+    {
+        return $this->fieldsBitMask & $bits;
     }
 }

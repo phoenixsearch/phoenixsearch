@@ -4,6 +4,7 @@ namespace pheonixsearch\helpers;
 
 use pheonixsearch\core\StdFields;
 use pheonixsearch\types\IndexInterface;
+use pheonixsearch\types\StdInterface;
 
 class Output
 {
@@ -28,8 +29,13 @@ class Output
             IndexInterface::INDEX   => $stdFields->getIndex(),
             IndexInterface::TYPE    => $stdFields->getType(),
             IndexInterface::ID      => $stdFields->getId(),
-            IndexInterface::RESULT  => $stdFields->getResult(),
         ];
+        if ($stdFields->isBitSet(StdInterface::BIT_RESULT)) {
+            $response[IndexInterface::RESULT] = $stdFields->getResult();
+        }
+        if ($stdFields->isBitSet(StdInterface::BIT_VERSION)) {
+            $response[IndexInterface::VERSION] = $stdFields->getVersion();
+        }
         static::out($response, $stdFields);
     }
 
