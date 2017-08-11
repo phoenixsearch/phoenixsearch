@@ -76,7 +76,7 @@ class Core implements CoreInterface
             $this->redisConn->lpush($lKey, [$incr]);
             $this->redisConn->hset($hKey, $incr, $this->requestDocument);
             if ($this->stdFields->getId() === 0) {
-                $this->setIndexData($lKey);
+                $this->setIndexData($this->requestDocument, $lKey);
             }
         }
     }
@@ -240,12 +240,12 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
-    private function setIndexData(string $lKey = ''): void
+    private function setIndexData(string $doc, string $lKey = ''): void
     {
         $data        = [];
         $wordIndices = [];
         $indices     = [];
-        $docSha      = sha1($this->requestDocument);
+        $docSha      = sha1($doc);
         $docShaData  = $this->redisConn->hget($this->incrKey, $docSha);
         if (empty($docShaData) === false) {
             $data = unserialize($docShaData);
