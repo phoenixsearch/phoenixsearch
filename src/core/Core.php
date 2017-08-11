@@ -156,6 +156,7 @@ class Core implements CoreInterface
             // delete doc data
             $this->redisConn->hdel($this->incrKey, [$docHash]);
             $this->stdFields->setResult(IndexInterface::RESULT_DELETED);
+            $this->stdFields->setVersion($docData[IndexInterface::VERSION]);
         }
 
         $this->stdFields->setIndex($this->index);

@@ -29,13 +29,9 @@ class Output
             IndexInterface::INDEX   => $stdFields->getIndex(),
             IndexInterface::TYPE    => $stdFields->getType(),
             IndexInterface::ID      => $stdFields->getId(),
+            IndexInterface::RESULT  => $stdFields->getResult(),
+            IndexInterface::VERSION => $stdFields->getVersion(),
         ];
-        if ($stdFields->isBitSet(StdInterface::BIT_RESULT)) {
-            $response[IndexInterface::RESULT] = $stdFields->getResult();
-        }
-        if ($stdFields->isBitSet(StdInterface::BIT_VERSION)) {
-            $response[IndexInterface::VERSION] = $stdFields->getVersion();
-        }
         static::out($response, $stdFields);
     }
 

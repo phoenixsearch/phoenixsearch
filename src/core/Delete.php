@@ -21,7 +21,6 @@ class Delete extends Core
         $tStart = Timers::millitime();
         $this->deleteDocument();
         $took = Timers::millitime() - $tStart;
-        $this->setDictHashData();
         $stdFields = $this->getStdFields();
         $stdFields->setTook($took);
         Output::jsonIndex($stdFields);
