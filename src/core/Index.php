@@ -20,19 +20,25 @@ class Index extends Core
     public function buildIndex()
     {
         $tStart = Timers::millitime();
-        foreach ($this->jsonArray as &$value) { // ex.: name => Alice Hacker
-            $words = explode(IndexInterface::SYMBOL_SPACE, $value);
-            foreach ($words as &$word) {
-                $this->insertWord($word);
+        $stdFields = $this->getStdFields();
+        $created = false;
+        if ($this->checkSameDoc() !== null) { // insert
+            foreach ($this->jsonArray as &$value) { // ex.: name => Alice Hacker
+                $words = explode(IndexInterface::SYMBOL_SPACE, $value);
+                foreach ($words as &$word) {
+                    $this->insertWord($word);
+                }
             }
+            $this->setDictHashData();
+            $stdFields->setResult(IndexInterface::RESULT_CREATED);
+            $created = true;
+        } else { // update
+
         }
         $took = Timers::millitime() - $tStart;
-        $this->setDictHashData();
-        $stdFields = $this->getStdFields();
         $stdFields->setTook($took);
         $stdFields->setOpType(IndexInterface::RESULT_CREATED);
-        $stdFields->setOpStatus(true);
-        $stdFields->setResult(IndexInterface::RESULT_CREATED);
+        $stdFields->setOpStatus($created);
         Output::jsonIndex($stdFields);
     }
 }

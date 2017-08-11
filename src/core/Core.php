@@ -62,7 +62,7 @@ class Core implements CoreInterface
         $this->setIncrKey();
     }
 
-    protected function insertWord(string $word)
+    protected function insertWord(string $word): void
     {
         $wordHash = md5($word);
         // prevent doubling repeated words
@@ -81,7 +81,13 @@ class Core implements CoreInterface
         }
     }
 
-    protected function searchPhrase(array $fieldValue)
+    protected function checkSameDoc(): ?string
+    {
+        $docSha = sha1($this->requestDocument);
+        return $this->redisConn->hget($this->incrKey, $docSha);
+    }
+
+    protected function searchPhrase(array $fieldValue): void
     {
         $tStart = Timers::millitime();
         foreach ($fieldValue as $field => $phrase) {
@@ -112,7 +118,7 @@ class Core implements CoreInterface
         $this->stdFields->setTotal(count($this->result));
     }
 
-    protected function deleteDocument()
+    protected function deleteDocument(): void
     {
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         // save id -> key for fast delete/update ops
@@ -140,7 +146,7 @@ class Core implements CoreInterface
         $this->stdFields->setId($this->id);
     }
 
-    private function setMatches(array $docs, string $phrase)
+    private function setMatches(array $docs, string $phrase): void
     {
         foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc);
@@ -158,7 +164,7 @@ class Core implements CoreInterface
         }
     }
 
-    private function setMatch(array $docs)
+    private function setMatch(array $docs): void
     {
         foreach ($docs as &$doc) { // perf by ref
             $this->setIndexData($doc);
@@ -175,14 +181,14 @@ class Core implements CoreInterface
      *  Glues the index with indexType by glue :, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
      */
-    private function setHashIndexKey()
+    private function setHashIndexKey(): void
     {
         $this->hashIndexKey = $this->index . (empty($this->indexType)
                 ? self::HASH_INDEX_GLUE
                 : (self::HASH_INDEX_GLUE . $this->indexType . self::HASH_INDEX_GLUE));
     }
 
-    private function setIncrKey()
+    private function setIncrKey(): void
     {
         $this->incrKey = $this->index . (empty($this->indexType) ? ''
                 : (self::HASH_INDEX_GLUE . $this->indexType . ''));
@@ -192,14 +198,14 @@ class Core implements CoreInterface
      *  Glues the index with indexType by glue _-_-_, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic
      */
-    private function setListIndexKey()
+    private function setListIndexKey(): void
     {
         $this->listIndexKey = $this->index . (empty($this->indexType)
                 ? self::LIST_INDEX_GLUE
                 : (self::LIST_INDEX_GLUE . $this->indexType . self::LIST_INDEX_GLUE));
     }
 
-    private function setStdFields()
+    private function setStdFields(): void
     {
         $this->stdFields = new StdFields();
         $this->stdFields->setIndex($this->index);
@@ -211,12 +217,12 @@ class Core implements CoreInterface
         $this->stdFields->setOpts($opts);
     }
 
-    public function getStdFields()
+    public function getStdFields(): ?StdFields
     {
         return $this->stdFields;
     }
 
-    private function setIndexData(string $lKey = '')
+    private function setIndexData(string $lKey = ''): void
     {
         $data        = [];
         $wordIndices = [];
@@ -252,7 +258,7 @@ class Core implements CoreInterface
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
     }
 
-    protected function setRequestDocument()
+    protected function setRequestDocument(): void
     {
         $jsonArray             = $this->requestHandler->getRequestBodyArray();
         $this->requestDocument = str_replace(
@@ -261,7 +267,7 @@ class Core implements CoreInterface
         );
     }
 
-    protected function setDictHashData()
+    protected function setDictHashData(): void
     {
         $docSha     = sha1($this->requestDocument);
         $docShaData = $this->redisConn->hget($this->incrKey, $docSha);
