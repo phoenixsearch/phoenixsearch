@@ -31,6 +31,8 @@ class StdFields
     private $opType = '';
     // operation status
     private $opStatus = false;
+    // version of document
+    private $version = 1;
 
     /**
      * @return int
@@ -238,5 +240,21 @@ class StdFields
     public function setOpStatus(bool $opStatus)
     {
         $this->opStatus = $opStatus;
+    }
+
+    /**
+     * @return int
+     */
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param int $version
+     */
+    public function setVersion(int $version)
+    {
+        $this->version = $version;
     }
 }

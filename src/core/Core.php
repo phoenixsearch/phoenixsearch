@@ -81,10 +81,27 @@ class Core implements CoreInterface
         }
     }
 
-    protected function checkSameDoc(): ?string
+    protected function getDocInfo(): ?string
     {
         $docSha = sha1($this->requestDocument);
         return $this->redisConn->hget($this->incrKey, $docSha);
+    }
+
+    protected function setDocInfo(array $info): void
+    {
+        $docSha = sha1($this->requestDocument);
+        $this->redisConn->hset($this->incrKey, $docSha, serialize($info));
+    }
+
+    protected function updateDocInfo(string $docInfo): bool
+    {
+        $docArr = unserialize($docInfo);
+        $docArr[IndexInterface::TIMESTAMP] = time();
+        $docArr[IndexInterface::VERSION] = ++$docArr[IndexInterface::VERSION];
+        $this->stdFields->setVersion($docArr[IndexInterface::VERSION]);
+        $this->stdFields->setId($docArr[IndexInterface::ID]);
+        $this->setDocInfo($docArr);
+        return true;
     }
 
     protected function searchPhrase(array $fieldValue): void
@@ -248,6 +265,7 @@ class Core implements CoreInterface
                 IndexInterface::ID           => $id,
                 IndexInterface::TIMESTAMP    => $t,
                 IndexInterface::WORD_INDICES => $indices,
+                IndexInterface::VERSION      => 1,
             ];
             $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
             // save id -> key for fast delete/update ops

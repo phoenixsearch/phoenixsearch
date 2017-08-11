@@ -27,11 +27,13 @@ interface IndexInterface
     const SOURCE         = '_source';
     const ID             = '_id';
     const TIMESTAMP      = '_timestamp';
+    const VERSION        = '_version';
     const RESULT         = 'result';
 
     // op results
     const RESULT_DELETED   = 'deleted';
     const RESULT_CREATED   = 'created';
+    const RESULT_UPDATED   = 'updated';
     const RESULT_FOUND     = 'found';
     const RESULT_NOT_FOUND = 'not found';
 

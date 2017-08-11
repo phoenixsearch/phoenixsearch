@@ -22,7 +22,8 @@ class Index extends Core
         $tStart = Timers::millitime();
         $stdFields = $this->getStdFields();
         $created = false;
-        if ($this->checkSameDoc() !== null) { // insert
+        $docInfo = $this->getDocInfo();
+        if ($docInfo === null) { // insert
             foreach ($this->jsonArray as &$value) { // ex.: name => Alice Hacker
                 $words = explode(IndexInterface::SYMBOL_SPACE, $value);
                 foreach ($words as &$word) {
@@ -33,12 +34,13 @@ class Index extends Core
             $stdFields->setResult(IndexInterface::RESULT_CREATED);
             $created = true;
         } else { // update
-
+            $this->updateDocInfo($docInfo);
+            $stdFields->setResult(IndexInterface::RESULT_UPDATED);
         }
         $took = Timers::millitime() - $tStart;
-        $stdFields->setTook($took);
         $stdFields->setOpType(IndexInterface::RESULT_CREATED);
         $stdFields->setOpStatus($created);
+        $stdFields->setTook($took);
         Output::jsonIndex($stdFields);
     }
 }
