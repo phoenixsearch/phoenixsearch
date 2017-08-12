@@ -8,11 +8,11 @@ class Request
 {
     public static function getJsonBody(string $requestBodyJson)
     {
-        $object = Json::decode($requestBodyJson);
+        $array = Json::decode($requestBodyJson);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_NOT_JSON], Errors::REQUEST_BODY_IS_NOT_JSON);
         }
-        return $object;
+        return $array;
     }
 
     public static function getJsonString()

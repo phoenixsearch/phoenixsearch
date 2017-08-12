@@ -13,15 +13,15 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
-    private $routePath  = null;
+    private $routePath = null;
     private $routeQuery = null;
 
-    private $index        = '';
-    private $indexType    = '';
-    private $id           = 0;
+    private $index = '';
+    private $indexType = '';
+    private $id = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
-    private $incrKey      = '';
+    private $incrKey = '';
 
     private $words = [];
 
@@ -32,11 +32,12 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes  = [];
+    private $docHashes = [];
     private $wordHashes = [];
-    private $result     = [];
+    private $result = [];
 
     private $requestDocument = '';
+    private $requestSource = '';
 
     private $listWordKeys = [];
     private $hashWordKeys = [];
@@ -67,37 +68,38 @@ class Core implements CoreInterface
         $wordHash = md5($word);
         // prevent doubling repeated words
         if (in_array($wordHash, $this->wordHashes) === false) {
-            $this->wordHashes[]   = $wordHash;
-            $lKey                 = $this->listIndexKey . $wordHash;
+            $this->wordHashes[] = $wordHash;
+            $lKey               = $this->listIndexKey . $wordHash;
+            if ($this->stdFields->getId() === 0) {
+                $this->setIndexData($lKey);
+            }
+            $this->setRequestDocument();
             $hKey                 = $this->hashIndexKey . $wordHash;
             $this->listWordKeys[] = $lKey;
             $this->hashWordKeys[] = $hKey;
             $incr                 = $this->redisConn->incr($this->listIndexKey);
             $this->redisConn->lpush($lKey, [$incr]);
             $this->redisConn->hset($hKey, $incr, $this->requestDocument);
-            if ($this->stdFields->getId() === 0) {
-                $this->setIndexData($this->requestDocument, $lKey);
-            }
         }
     }
 
     protected function getDocInfo(): ?string
     {
-        $docSha = sha1($this->requestDocument);
+        $docSha = sha1($this->requestSource);
         return $this->redisConn->hget($this->incrKey, $docSha);
     }
 
     protected function setDocInfo(array $info): void
     {
-        $docSha = sha1($this->requestDocument);
+        $docSha = sha1($this->requestSource);
         $this->redisConn->hset($this->incrKey, $docSha, serialize($info));
     }
 
     protected function updateDocInfo(string $docInfo): bool
     {
-        $docArr = unserialize($docInfo);
+        $docArr                            = unserialize($docInfo);
         $docArr[IndexInterface::TIMESTAMP] = time();
-        $docArr[IndexInterface::VERSION] = ++$docArr[IndexInterface::VERSION];
+        $docArr[IndexInterface::VERSION]   = ++$docArr[IndexInterface::VERSION];
         $this->stdFields->setVersion($docArr[IndexInterface::VERSION]);
         $this->stdFields->setId($docArr[IndexInterface::ID]);
         $this->setDocInfo($docArr);
@@ -166,17 +168,12 @@ class Core implements CoreInterface
 
     private function setMatches(array $docs, string $phrase): void
     {
-        foreach ($docs as $index => &$doc) { // perf by ref
-            $docHash = md5($doc);
-            if (mb_strpos($doc, $phrase) !== false && in_array($docHash, $this->docHashes) === false) {
-                $this->setIndexData($doc);
-                $this->result[]    = [
-                    IndexInterface::INDEX     => $this->stdFields->getIndex(),
-                    IndexInterface::TYPE      => $this->stdFields->getType(),
-                    IndexInterface::ID        => $this->stdFields->getId(),
-                    IndexInterface::TIMESTAMP => $this->stdFields->getTimestamp(),
-                    IndexInterface::SOURCE    => Json::parse($doc),
-                ];
+        foreach ($docs as &$doc) { // perf by ref
+            $docHash = md5($doc); // for fast search duplicates only
+            if (mb_strpos($doc, $phrase) !== false
+                && in_array($docHash, $this->docHashes) === false
+            ) { // avoid doubling
+                $this->result[]    = Json::parse($doc);
                 $this->docHashes[] = $docHash;
             }
         }
@@ -185,13 +182,7 @@ class Core implements CoreInterface
     private function setMatch(array $docs): void
     {
         foreach ($docs as &$doc) { // perf by ref
-            $this->setIndexData($doc);
-            $this->result[] = [
-                IndexInterface::INDEX  => $this->stdFields->getIndex(),
-                IndexInterface::TYPE   => $this->stdFields->getType(),
-                IndexInterface::ID     => $this->stdFields->getId(),
-                IndexInterface::SOURCE => Json::parse($doc),
-            ];
+            $this->result[] = Json::parse($doc);
         }
     }
 
@@ -240,23 +231,22 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
-    private function setIndexData(string $doc, string $lKey = ''): void
+    private function setIndexData(string $lKey): array
     {
         $data        = [];
         $wordIndices = [];
         $indices     = [];
-        $docSha      = sha1($doc);
+        $docSha      = sha1($this->requestSource);
         $docShaData  = $this->redisConn->hget($this->incrKey, $docSha);
         if (empty($docShaData) === false) {
             $data = unserialize($docShaData);
         }
-        if ('' !== $lKey) {
-            $range = $this->redisConn->lrange($lKey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-            if (empty($range) === false) {
-                $indices     = array_values($range);
-                $wordIndices = empty($data[IndexInterface::WORD_INDICES]) ? $indices :
-                    array_diff($indices, $data[IndexInterface::WORD_INDICES]);
-            }
+
+        $range = $this->redisConn->lrange($lKey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
+        if (empty($range) === false) {
+            $indices     = array_values($range);
+            $wordIndices = empty($data[IndexInterface::WORD_INDICES]) ? $indices :
+                array_diff($indices, $data[IndexInterface::WORD_INDICES]);
         }
         // insert new hashed doc with incr ID and DATA or fulfill _word_indices if there are more
         if (empty($data) || empty($wordIndices) === false) {
@@ -275,12 +265,30 @@ class Core implements CoreInterface
         }
         $this->stdFields->setId($data[IndexInterface::ID]);
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
+        return $data;
     }
 
     protected function setRequestDocument(): void
     {
-        $jsonArray             = $this->requestHandler->getRequestBodyArray();
-        $this->requestDocument = str_replace(
+        $jsonArray                            = [];
+        $jsonArray[IndexInterface::INDEX]     = $this->stdFields->getIndex();
+        $jsonArray[IndexInterface::TYPE]      = $this->stdFields->getType();
+        $jsonArray[IndexInterface::ID]        = $this->stdFields->getId();
+        $jsonArray[IndexInterface::TIMESTAMP] = $this->stdFields->getTimestamp();
+        $jsonArray[IndexInterface::SOURCE]    = $this->requestHandler->getRequestBodyArray();
+        $this->requestDocument                = str_replace(
+            self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
+            serialize($jsonArray)
+        );
+    }
+
+    /**
+     *  Sets the only source doc from input stream
+     */
+    protected function setSourceDocument(): void
+    {
+        $jsonArray           = $this->requestHandler->getRequestBodyArray();
+        $this->requestSource = str_replace(
             self::DOUBLE_QUOTES, self::DOUBLE_QUOTES_ESC,
             serialize($jsonArray)
         );
@@ -288,7 +296,7 @@ class Core implements CoreInterface
 
     protected function setDictHashData(): void
     {
-        $docSha     = sha1($this->requestDocument);
+        $docSha     = sha1($this->requestSource);
         $docShaData = $this->redisConn->hget($this->incrKey, $docSha);
         $data       = unserialize($docShaData);
 
