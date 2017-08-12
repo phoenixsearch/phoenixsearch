@@ -21,4 +21,6 @@ interface CoreInterface
     const LRANGE_DEFAULT_STOP  = -1;
 
     const JSON_PRETTY_PRINT = 'pretty';
+
+    const DEFAULT_LIMIT = 10000;
 }

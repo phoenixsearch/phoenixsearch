@@ -15,6 +15,9 @@ interface IndexInterface
     // search query entities
     const QUERY = 'query';
     const TERM  = 'term';
+    // offset/limit
+    const OFFSET = 'offset';
+    const LIMIT  = 'limit';
 
     // response - StdFields
     const TOOK      = 'took';

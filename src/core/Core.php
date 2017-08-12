@@ -8,6 +8,7 @@ use pheonixsearch\helpers\Timers;
 use pheonixsearch\storage\RedisConnector;
 use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\Errors;
+use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\IndexInterface;
 use Predis\Client;
 
@@ -42,6 +43,11 @@ class Core implements CoreInterface
     private $listWordKeys = [];
     private $hashWordKeys = [];
 
+    private $offset    = 0;
+    private $limit     = CoreInterface::DEFAULT_LIMIT;
+    private $highlight = false;
+    private $found     = 0; // incremented counter between phrases & words
+
     protected function __construct(RequestHandler $handler)
     {
         $this->redisConn  = RedisConnector::getInstance();
@@ -57,6 +63,11 @@ class Core implements CoreInterface
             throw new UriException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_EMPTY_INDEX], Errors::REQUEST_URI_EMPTY_INDEX);
         }
         $this->requestHandler = $handler;
+        if ($this->requestHandler->getRequestMethod() === HttpBase::HTTP_METHOD_GET) { // search
+            $this->offset    = $this->requestHandler->getOffset();
+            $this->limit     = $this->requestHandler->getLimit();
+            $this->highlight = $this->requestHandler->isHighlight();
+        }
         $this->setStdFields();
         $this->setHashIndexKey();
         $this->setListIndexKey();
@@ -112,15 +123,21 @@ class Core implements CoreInterface
         foreach ($fieldValue as $field => $phrase) {
             $this->words = explode(IndexInterface::SYMBOL_SPACE, $phrase);
             $cntWords    = count($this->words);
-            foreach ($this->words as &$word) { // perf by ref
+            foreach ($this->words as &$word) {
                 $wordHash = md5($word);
                 $hkey     = $this->hashIndexKey . $wordHash;
                 $docs     = $this->redisConn->hvals($hkey);
                 if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
-                    $this->setMatches($docs, $phrase);
+                    $done = $this->setMatches($docs, $phrase);
+                    if (true === $done) {
+                        break 2;
+                    }
                 } else {
                     if ($cntWords === 1) {
-                        $this->setMatch($docs);
+                       $done = $this->setMatch($docs);
+                        if (true === $done) {
+                            break 2;
+                        }
                     }
                 }
             }
@@ -161,24 +178,38 @@ class Core implements CoreInterface
         $this->stdFields->setId($this->id);
     }
 
-    private function setMatches(array $docs, string $phrase): void
+    private function setMatches(array $docs, string $phrase): bool
     {
         foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
             if (empty($this->docHashes[$docHash])
                 && mb_strpos($doc, $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false
             ) { // avoid doubling
+                if (++$this->found < $this->offset) {
+                    continue;
+                }
+                if ($this->found >= $this->limit) {
+                    return true;
+                }
                 $this->result[]            = Json::parse($doc);
                 $this->docHashes[$docHash] = $index;
             }
         }
+        return false;
     }
 
-    private function setMatch(array $docs): void
+    private function setMatch(array $docs): bool
     {
         foreach ($docs as &$doc) { // perf by ref
+            if (++$this->found < $this->offset) {
+                continue;
+            }
+            if ($this->found >= $this->limit) {
+                return true;
+            }
             $this->result[] = Json::parse($doc);
         }
+        return false;
     }
 
     /**

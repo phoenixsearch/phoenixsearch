@@ -7,6 +7,7 @@ use pheonixsearch\helpers\Request;
 use pheonixsearch\types\EntryInterface;
 use pheonixsearch\types\Errors;
 use pheonixsearch\types\HttpBase;
+use pheonixsearch\types\IndexInterface;
 
 class RequestHandler
 {
@@ -15,6 +16,11 @@ class RequestHandler
     private $routePath        = null;
     private $routeQuery       = null;
     private $requestMethod    = '';
+
+    // options
+    private $offset    = 0;
+    private $limit     = 10000;
+    private $highlight = false;
 
     public function __construct()
     {
@@ -27,6 +33,12 @@ class RequestHandler
         }
         if ($this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
+            if (empty($this->requestBodyArray[IndexInterface::OFFSET]) === false) {
+                $this->setOffset($this->requestBodyArray[IndexInterface::OFFSET]);
+            }
+            if (empty($this->requestBodyArray[IndexInterface::LIMIT]) === false) {
+                $this->setLimit($this->requestBodyArray[IndexInterface::LIMIT]);
+            }
         }
         $parsedUri        = parse_url($_SERVER['REQUEST_URI']);
         $this->setRoutePath(empty($parsedUri[EntryInterface::URI_PATH]) ? null : $parsedUri[EntryInterface::URI_PATH]);
@@ -111,6 +123,54 @@ class RequestHandler
     public function setRequestMethod(string $requestMethod)
     {
         $this->requestMethod = $requestMethod;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOffset(): int
+    {
+        return $this->offset;
+    }
+
+    /**
+     * @param int $offset
+     */
+    public function setOffset(int $offset)
+    {
+        $this->offset = $offset;
+    }
+
+    /**
+     * @return int
+     */
+    public function getLimit(): int
+    {
+        return $this->limit;
+    }
+
+    /**
+     * @param int $limit
+     */
+    public function setLimit(int $limit)
+    {
+        $this->limit = $limit;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHighlight(): bool
+    {
+        return $this->highlight;
+    }
+
+    /**
+     * @param bool $highlight
+     */
+    public function setHighlight(bool $highlight)
+    {
+        $this->highlight = $highlight;
     }
 
 }
