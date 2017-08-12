@@ -114,18 +114,13 @@ class Core implements CoreInterface
             $cntWords    = count($this->words);
             foreach ($this->words as &$word) { // perf by ref
                 $wordHash = md5($word);
-                $lkey     = $this->listIndexKey . $wordHash;
-                $lrange   = $this->redisConn->lrange($lkey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-                if (empty($lrange) === false) {
-                    $hkey    = $this->hashIndexKey . $wordHash;
-                    $indices = array_values($lrange);
-                    $docs    = $this->redisConn->hmget($hkey, $indices);
-                    if ($cntWords > 1) { // intersect search
-                        $this->setMatches($docs, $phrase);
-                    } else {
-                        if ($cntWords === 1) {
-                            $this->setMatch($docs);
-                        }
+                $hkey     = $this->hashIndexKey . $wordHash;
+                $docs     = $this->redisConn->hvals($hkey);
+                if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
+                    $this->setMatches($docs, $phrase);
+                } else {
+                    if ($cntWords === 1) {
+                        $this->setMatch($docs);
                     }
                 }
             }
@@ -168,13 +163,13 @@ class Core implements CoreInterface
 
     private function setMatches(array $docs, string $phrase): void
     {
-        foreach ($docs as &$doc) { // perf by ref
+        foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
-            if (mb_strpos($doc, $phrase) !== false
-                && in_array($docHash, $this->docHashes) === false
+            if (empty($this->docHashes[$docHash])
+                && mb_strpos($doc, $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false
             ) { // avoid doubling
-                $this->result[]    = Json::parse($doc);
-                $this->docHashes[] = $docHash;
+                $this->result[]            = Json::parse($doc);
+                $this->docHashes[$docHash] = $index;
             }
         }
     }

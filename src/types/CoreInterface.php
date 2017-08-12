@@ -11,6 +11,7 @@ namespace pheonixsearch\types;
 
 interface CoreInterface
 {
+    const DEFAULT_ENCODING  = 'utf-8';
     const HASH_INDEX_GLUE   = ':';
     const LIST_INDEX_GLUE   = '___';
     const DOUBLE_QUOTES     = '"';
