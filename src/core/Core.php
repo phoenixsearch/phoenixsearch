@@ -93,9 +93,9 @@ class Core implements CoreInterface
     {
         $wordHash = md5($field . $word);
         // prevent doubling repeated words
-        if (empty($this->wordHashes[$wordHash]) === false) {
+        if (empty($this->wordHashes[$wordHash])) {
             $this->wordHashes[$wordHash] = 1;
-            $lKey               = $this->listIndexKey . $wordHash;
+            $lKey                        = $this->listIndexKey . $wordHash;
             if ($this->stdFields->getId() === 0) {
                 $this->setIndexData($lKey);
             }
@@ -152,7 +152,7 @@ class Core implements CoreInterface
             $this->words = explode(IndexInterface::SYMBOL_SPACE, $phrase);
             $cntWords    = count($this->words);
             foreach ($this->words as &$word) {
-                $wordHash = md5($word);
+                $wordHash = md5($field . $word);
                 $hkey     = $this->hashIndexKey . $wordHash;
                 $docs     = $this->redisConn->hvals($hkey);
                 if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
@@ -177,6 +177,9 @@ class Core implements CoreInterface
         $this->stdFields->setTotal(count($this->result));
     }
 
+    /**
+     *  Deletes all indices and data related to document ID
+     */
     protected function deleteDocument(): void
     {
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
@@ -210,24 +213,26 @@ class Core implements CoreInterface
      * Finds documents by phrase match
      * @param array  $docs   an array of index => document
      * @param string $phrase the phrase to search
+     * @param string $field  for md5 field oriented search
      * @return bool true if limit has been reached, false otherwise
      */
-    private function setMatches(array $docs, string $phrase): bool
+    private function setMatches(array $docs, string $phrase, string $field): bool
     {
         foreach ($docs as &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
-            if (empty($this->docHashes[$docHash])
-                && mb_strpos($doc, $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false
-            ) { // avoid doubling
-                if (++$this->found < $this->offset) {
-                    continue;
+            if (empty($this->docHashes[$docHash])) { // avoid doubling
+                $resultArray = Json::parse($doc);
+                // search by defined field
+                if (mb_strpos($resultArray[IndexInterface::SOURCE][$field], $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false) {
+                    if (++$this->found < $this->offset) {
+                        continue;
+                    }
+                    if ($this->found >= $this->limit) {
+                        return true;
+                    }
+                    $this->result[]            = Highlighter::highlight($this, $resultArray, $phrase);
+                    $this->docHashes[$docHash] = 1;
                 }
-                if ($this->found >= $this->limit) {
-                    return true;
-                }
-                $resultArray               = Json::parse($doc);
-                $this->result[]            = Highlighter::highlight($this, $resultArray, $phrase);
-                $this->docHashes[$docHash] = 1;
             }
         }
         return false;
