@@ -161,7 +161,7 @@ class Core implements CoreInterface
                     }
                 } else {
                     if ($cntWords === 1) {
-                        $done = $this->setMatch($docs);
+                        $done = $this->setMatch($docs, $word);
                         if (true === $done) {
                             break 2;
                         }
@@ -234,10 +234,11 @@ class Core implements CoreInterface
 
     /**
      * Finds documents by word match
-     * @param array $docs
+     * @param array  $docs
+     * @param string $word
      * @return bool true if limit has been reached, false otherwise
      */
-    private function setMatch(array $docs): bool
+    private function setMatch(array $docs, string $word): bool
     {
         foreach ($docs as &$doc) { // perf by ref
             if (++$this->found < $this->offset) {
@@ -247,7 +248,7 @@ class Core implements CoreInterface
                 return true;
             }
             $resultArray    = Json::parse($doc);
-            $this->result[] = Highlighter::highlight($this, $resultArray, $phrase);
+            $this->result[] = Highlighter::highlight($this, $resultArray, $word);
         }
         return false;
     }
