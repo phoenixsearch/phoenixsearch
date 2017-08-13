@@ -3,6 +3,7 @@
 namespace pheonixsearch\core;
 
 use pheonixsearch\exceptions\UriException;
+use pheonixsearch\helpers\Highlighter;
 use pheonixsearch\helpers\Json;
 use pheonixsearch\helpers\Timers;
 use pheonixsearch\storage\RedisConnector;
@@ -29,7 +30,7 @@ class Core implements CoreInterface
     /** @var Client $redisConn */
     private $redisConn = null;
     /** @var RequestHandler $requestHandler */
-    private $requestHandler = null;
+    public $requestHandler = null;
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
@@ -45,11 +46,17 @@ class Core implements CoreInterface
 
     private $offset = 0;
     private $limit = CoreInterface::DEFAULT_LIMIT;
-    private $highlight = false;
     private $found = 0; // incremented counter between phrases & words
-    private $preTags = '';
-    private $postTags = '';
 
+    public $highlight = false;
+    public $preTags = '';
+    public $postTags = '';
+
+    /**
+     * Core constructor.
+     * @param RequestHandler $handler
+     * @throws UriException
+     */
     protected function __construct(RequestHandler $handler)
     {
         $this->redisConn  = RedisConnector::getInstance();
@@ -78,6 +85,9 @@ class Core implements CoreInterface
         $this->setIncrKey();
     }
 
+    /**
+     * @param string $word
+     */
     protected function insertWord(string $word): void
     {
         $wordHash = md5($word);
@@ -98,18 +108,28 @@ class Core implements CoreInterface
         }
     }
 
+    /**
+     * @return null|string
+     */
     protected function getDocInfo(): ?string
     {
         $docSha = sha1($this->requestSource);
         return $this->redisConn->hget($this->incrKey, $docSha);
     }
 
+    /**
+     * @param array $info
+     */
     protected function setDocInfo(array $info): void
     {
         $docSha = sha1($this->requestSource);
         $this->redisConn->hset($this->incrKey, $docSha, serialize($info));
     }
 
+    /**
+     * @param string $docInfo
+     * @return bool
+     */
     protected function updateDocInfo(string $docInfo): bool
     {
         $docArr                            = unserialize($docInfo);
@@ -121,6 +141,9 @@ class Core implements CoreInterface
         return true;
     }
 
+    /**
+     * @param array $fieldValue
+     */
     protected function searchPhrase(array $fieldValue): void
     {
         $tStart = Timers::millitime();
@@ -132,7 +155,7 @@ class Core implements CoreInterface
                 $hkey     = $this->hashIndexKey . $wordHash;
                 $docs     = $this->redisConn->hvals($hkey);
                 if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
-                    $done = $this->setMatches($docs, $phrase, $field);
+                    $done = $this->setMatches($docs, $phrase);
                     if (true === $done) {
                         break 2;
                     }
@@ -183,15 +206,14 @@ class Core implements CoreInterface
     }
 
     /**
-     * Finds documents by phrase match and returns true if limit is reached
+     * Finds documents by phrase match
      * @param array  $docs   an array of index => document
      * @param string $phrase the phrase to search
-     * @param string $field  field value to check field matches
      * @return bool true if limit has been reached, false otherwise
      */
-    private function setMatches(array $docs, string $phrase, string $field): bool
+    private function setMatches(array $docs, string $phrase): bool
     {
-        foreach ($docs as $index => &$doc) { // perf by ref
+        foreach ($docs as &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
             if (empty($this->docHashes[$docHash])
                 && mb_strpos($doc, $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false
@@ -202,28 +224,19 @@ class Core implements CoreInterface
                 if ($this->found >= $this->limit) {
                     return true;
                 }
-                $resultArray = Json::parse($doc);
-                if (true === $this->highlight) {
-                    $replacement = $this->preTags . $phrase . $this->postTags;
-                    if (array_key_exists(IndexInterface::ALL, $this->requestHandler->getHighlightFields())) {
-                        foreach ($resultArray as $f => &$text) {
-                            $text = str_replace($phrase, $replacement, $text);
-                        }
-                    } else {
-                        foreach ($resultArray as $f => &$text) {
-                            if (array_key_exists($f, $this->requestHandler->getHighlightFields()) === false) {
-                                $text = str_replace($phrase, $replacement, $text);
-                            }
-                        }
-                    }
-                }
-                $this->result[]            = $resultArray;
-                $this->docHashes[$docHash] = $index;
+                $resultArray               = Json::parse($doc);
+                $this->result[]            = Highlighter::highlight($this, $resultArray, $phrase);
+                $this->docHashes[$docHash] = 1;
             }
         }
         return false;
     }
 
+    /**
+     * Finds documents by word match
+     * @param array $docs
+     * @return bool true if limit has been reached, false otherwise
+     */
     private function setMatch(array $docs): bool
     {
         foreach ($docs as &$doc) { // perf by ref
@@ -233,7 +246,8 @@ class Core implements CoreInterface
             if ($this->found >= $this->limit) {
                 return true;
             }
-            $this->result[] = Json::parse($doc);
+            $resultArray    = Json::parse($doc);
+            $this->result[] = Highlighter::highlight($this, $resultArray, $phrase);
         }
         return false;
     }
@@ -283,6 +297,10 @@ class Core implements CoreInterface
         return $this->stdFields;
     }
 
+    /**
+     * @param string $lKey
+     * @return array
+     */
     private function setIndexData(string $lKey): array
     {
         $data        = [];
