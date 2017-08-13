@@ -87,13 +87,14 @@ class Core implements CoreInterface
 
     /**
      * @param string $word
+     * @param string $field
      */
-    protected function insertWord(string $word): void
+    protected function insertWord(string $word, string $field): void
     {
-        $wordHash = md5($word);
+        $wordHash = md5($field . $word);
         // prevent doubling repeated words
-        if (in_array($wordHash, $this->wordHashes) === false) {
-            $this->wordHashes[] = $wordHash;
+        if (empty($this->wordHashes[$wordHash]) === false) {
+            $this->wordHashes[$wordHash] = 1;
             $lKey               = $this->listIndexKey . $wordHash;
             if ($this->stdFields->getId() === 0) {
                 $this->setIndexData($lKey);
@@ -155,7 +156,7 @@ class Core implements CoreInterface
                 $hkey     = $this->hashIndexKey . $wordHash;
                 $docs     = $this->redisConn->hvals($hkey);
                 if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
-                    $done = $this->setMatches($docs, $phrase);
+                    $done = $this->setMatches($docs, $phrase, $field);
                     if (true === $done) {
                         break 2;
                     }

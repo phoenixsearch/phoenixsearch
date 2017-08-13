@@ -24,10 +24,10 @@ class Index extends Core
         $created = false;
         $docInfo = $this->getDocInfo();
         if ($docInfo === null) { // insert
-            foreach ($this->jsonArray as &$value) { // ex.: name => Alice Hacker
+            foreach ($this->jsonArray as $field => &$value) { // ex.: name => Alice Hacker
                 $words = explode(IndexInterface::SYMBOL_SPACE, $value);
                 foreach ($words as &$word) {
-                    $this->insertWord($word);
+                    $this->insertWord($word, $field);
                 }
             }
             $this->setDictHashData();
