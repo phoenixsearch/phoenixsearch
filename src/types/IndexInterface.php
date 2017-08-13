@@ -16,8 +16,14 @@ interface IndexInterface
     const QUERY = 'query';
     const TERM  = 'term';
     // offset/limit
-    const OFFSET = 'offset';
-    const LIMIT  = 'limit';
+    const OFFSET    = 'offset';
+    const LIMIT     = 'limit';
+    // highlight settings
+    const HIGHLIGHT = 'highlight';
+    const PRE_TAGS  = 'pre_tags';
+    const POST_TAGS = 'post_tags';
+    // canonical values
+    const FIELDS = 'fields';
 
     // response - StdFields
     const TOOK      = 'took';
@@ -31,6 +37,7 @@ interface IndexInterface
     const ID             = '_id';
     const TIMESTAMP      = '_timestamp';
     const VERSION        = '_version';
+    const ALL            = '_all';
     const RESULT         = 'result';
 
     // op results

@@ -43,10 +43,12 @@ class Core implements CoreInterface
     private $listWordKeys = [];
     private $hashWordKeys = [];
 
-    private $offset    = 0;
-    private $limit     = CoreInterface::DEFAULT_LIMIT;
+    private $offset = 0;
+    private $limit = CoreInterface::DEFAULT_LIMIT;
     private $highlight = false;
-    private $found     = 0; // incremented counter between phrases & words
+    private $found = 0; // incremented counter between phrases & words
+    private $preTags = '';
+    private $postTags = '';
 
     protected function __construct(RequestHandler $handler)
     {
@@ -67,6 +69,8 @@ class Core implements CoreInterface
             $this->offset    = $this->requestHandler->getOffset();
             $this->limit     = $this->requestHandler->getLimit();
             $this->highlight = $this->requestHandler->isHighlight();
+            $this->preTags   = $this->requestHandler->getPreTags();
+            $this->postTags  = $this->requestHandler->getPostTags();
         }
         $this->setStdFields();
         $this->setHashIndexKey();
@@ -128,13 +132,13 @@ class Core implements CoreInterface
                 $hkey     = $this->hashIndexKey . $wordHash;
                 $docs     = $this->redisConn->hvals($hkey);
                 if ($cntWords > 1) { // intersect search (means search by phrase in each doc for every word)
-                    $done = $this->setMatches($docs, $phrase);
+                    $done = $this->setMatches($docs, $phrase, $field);
                     if (true === $done) {
                         break 2;
                     }
                 } else {
                     if ($cntWords === 1) {
-                       $done = $this->setMatch($docs);
+                        $done = $this->setMatch($docs);
                         if (true === $done) {
                             break 2;
                         }
@@ -178,7 +182,14 @@ class Core implements CoreInterface
         $this->stdFields->setId($this->id);
     }
 
-    private function setMatches(array $docs, string $phrase): bool
+    /**
+     * Finds documents by phrase match and returns true if limit is reached
+     * @param array  $docs   an array of index => document
+     * @param string $phrase the phrase to search
+     * @param string $field  field value to check field matches
+     * @return bool true if limit has been reached, false otherwise
+     */
+    private function setMatches(array $docs, string $phrase, string $field): bool
     {
         foreach ($docs as $index => &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
@@ -191,7 +202,22 @@ class Core implements CoreInterface
                 if ($this->found >= $this->limit) {
                     return true;
                 }
-                $this->result[]            = Json::parse($doc);
+                $resultArray = Json::parse($doc);
+                if (true === $this->highlight) {
+                    $replacement = $this->preTags . $phrase . $this->postTags;
+                    if (array_key_exists(IndexInterface::ALL, $this->requestHandler->getHighlightFields())) {
+                        foreach ($resultArray as $f => &$text) {
+                            $text = str_replace($phrase, $replacement, $text);
+                        }
+                    } else {
+                        foreach ($resultArray as $f => &$text) {
+                            if (array_key_exists($f, $this->requestHandler->getHighlightFields()) === false) {
+                                $text = str_replace($phrase, $replacement, $text);
+                            }
+                        }
+                    }
+                }
+                $this->result[]            = $resultArray;
                 $this->docHashes[$docHash] = $index;
             }
         }

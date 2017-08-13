@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\helpers;
 
+use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\StdFields;
 use pheonixsearch\types\IndexInterface;
 use pheonixsearch\types\StdInterface;

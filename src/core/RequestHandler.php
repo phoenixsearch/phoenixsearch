@@ -18,9 +18,12 @@ class RequestHandler
     private $requestMethod    = '';
 
     // options
-    private $offset    = 0;
-    private $limit     = 10000;
-    private $highlight = false;
+    private $offset          = 0;
+    private $limit           = 10000;
+    private $highlight       = false;
+    private $preTags         = '';
+    private $postTags        = '';
+    private $highlightFields = [];
 
     public function __construct()
     {
@@ -33,11 +36,25 @@ class RequestHandler
         }
         if ($this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
+        }
+        if ($this->requestMethod === HttpBase::HTTP_METHOD_GET) {
             if (empty($this->requestBodyArray[IndexInterface::OFFSET]) === false) {
                 $this->setOffset($this->requestBodyArray[IndexInterface::OFFSET]);
             }
             if (empty($this->requestBodyArray[IndexInterface::LIMIT]) === false) {
                 $this->setLimit($this->requestBodyArray[IndexInterface::LIMIT]);
+            }
+            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT]) === false) {
+                $this->setHighlight(true);
+            }
+            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]) === false) {
+                $this->setHighlightFields($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]);
+            }
+            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]) === false) {
+                $this->setPreTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]));
+            }
+            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]) === false) {
+                $this->setPostTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]));
             }
         }
         $parsedUri        = parse_url($_SERVER['REQUEST_URI']);
@@ -171,6 +188,54 @@ class RequestHandler
     public function setHighlight(bool $highlight)
     {
         $this->highlight = $highlight;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPreTags(): string
+    {
+        return $this->preTags;
+    }
+
+    /**
+     * @param string $preTags
+     */
+    public function setPreTags(string $preTags)
+    {
+        $this->preTags = $preTags;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostTags(): string
+    {
+        return $this->postTags;
+    }
+
+    /**
+     * @param string $postTags
+     */
+    public function setPostTags(string $postTags)
+    {
+        $this->postTags = $postTags;
+    }
+
+    /**
+     * @return array
+     */
+    public function getHighlightFields(): array
+    {
+        return $this->highlightFields;
+    }
+
+    /**
+     * @param array $highlightFields
+     */
+    public function setHighlightFields(array $highlightFields)
+    {
+        $this->highlightFields = $highlightFields;
     }
 
 }
