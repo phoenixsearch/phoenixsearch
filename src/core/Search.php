@@ -17,9 +17,14 @@ class Search extends Core
 
     public function performSearch()
     {
-        $fieldValueMap = $this->parseStructure();
-        $this->searchPhrase($fieldValueMap);
-        Output::jsonSearch($this->getStdFields());
+        if (empty($this->jsonArray) === false) { // search by query
+            $fieldValueMap = $this->parseStructure();
+            $this->searchPhrase($fieldValueMap);
+            Output::jsonSearch($this->getStdFields());
+        } else { // search by ID
+            $this->searchById();
+            // todo: output with _source
+        }
     }
 
     private function parseStructure()

@@ -39,6 +39,7 @@ interface IndexInterface
     const VERSION        = '_version';
     const ALL            = '_all';
     const RESULT         = 'result';
+    const DOCUMENT       = '_document';
 
     // op results
     const RESULT_DELETED   = 'deleted';

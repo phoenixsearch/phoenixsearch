@@ -34,23 +34,23 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes = [];
+    private $docHashes  = [];
     private $wordHashes = [];
-    private $result = [];
+    private $result     = [];
 
-    private $requestDocument = '';
-    private $requestSource = '';
+    private $requestDocument      = '';
+    private $requestSource        = '';
 
     private $listWordKeys = [];
     private $hashWordKeys = [];
 
     private $offset = 0;
-    private $limit = CoreInterface::DEFAULT_LIMIT;
-    private $found = 0; // incremented counter between phrases & words
+    private $limit  = CoreInterface::DEFAULT_LIMIT;
+    private $found  = 0; // incremented counter between phrases & words
 
     public $highlight = false;
-    public $preTags = '';
-    public $postTags = '';
+    public $preTags   = '';
+    public $postTags  = '';
 
     /**
      * Core constructor.
@@ -175,6 +175,24 @@ class Core implements CoreInterface
         $this->stdFields->setTook($took);
         $this->stdFields->setHits($this->result);
         $this->stdFields->setTotal(count($this->result));
+    }
+
+    /**
+     * Searches document by uri routed ID
+     */
+    protected function searchById(): void
+    {
+        $tStart = Timers::millitime();
+        $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+        // get the document hash
+        $docSha = $this->redisConn->hget($incrMatch, $this->id);
+        // get serialized data
+        $data = unserialize($this->redisConn->hget($this->incrKey, $docSha));
+        $took = Timers::millitime() - $tStart;
+        $this->stdFields->setHits()
+        $this->stdFields->setTook($took);
+        $this->stdFields->setId($data[IndexInterface::ID]);
+        $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
     }
 
     /**
@@ -330,10 +348,11 @@ class Core implements CoreInterface
             $id        = $this->redisConn->incr($this->hashIndexKey);
             $t         = time();
             $data      = [
-                IndexInterface::ID           => $id,
-                IndexInterface::TIMESTAMP    => $t,
+                IndexInterface::ID           => $id, // needed to use without serialization
+                IndexInterface::TIMESTAMP    => $t, // needed to use without serialization
                 IndexInterface::WORD_INDICES => $indices,
                 IndexInterface::VERSION      => 1,
+                IndexInterface::SOURCE       => $this->requestSource,
             ];
             $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
             // save id -> key for fast delete/update ops
