@@ -55,6 +55,7 @@ trait Info
 
     public function getInfo(StdFields $stdFields)
     {
-        $this->redisConn->hvals(InfoInterface::INFO_INDICES);
+        $indicesInfo = $this->redisConn->hvals(InfoInterface::INFO_INDICES);
+        return $indicesInfo;
     }
 }
