@@ -15,7 +15,8 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
-    use Serializer;
+    use Serializer,
+        Info;
 
     private $routePath = null;
     private $routeQuery = null;
@@ -229,6 +230,7 @@ class Core implements CoreInterface
             $this->redisConn->hdel($this->incrKey, [$docHash]);
             $this->stdFields->setResult(IndexInterface::RESULT_DELETED);
             $this->stdFields->setVersion($docData[IndexInterface::VERSION]);
+            $this->decrInfo($this->stdFields);
         }
 
         $this->stdFields->setIndex($this->index);
@@ -368,6 +370,7 @@ class Core implements CoreInterface
             $this->redisConn->hset($incrMatch, $id, $docSha);
             $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
         }
+        $this->setInfo($this->stdFields);
         $this->stdFields->setId($data[IndexInterface::ID]);
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
         return $data;
