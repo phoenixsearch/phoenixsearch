@@ -1,15 +1,25 @@
 <?php
-
 namespace pheonixsearch\helpers;
 
-use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\StdFields;
 use pheonixsearch\types\IndexInterface;
-use pheonixsearch\types\StdInterface;
 
 class Output
 {
-    public static function jsonSearch(StdFields $stdFields)
+    public static function jsonGetById(StdFields $stdFields): void
+    {
+        $response = [
+            IndexInterface::INDEX   => $stdFields->getIndex(),
+            IndexInterface::TYPE    => $stdFields->getType(),
+            IndexInterface::ID      => $stdFields->getId(),
+            IndexInterface::VERSION => $stdFields->getVersion(),
+            $stdFields->getOpType() => $stdFields->isOpStatus(),
+            IndexInterface::SOURCE  => $stdFields->getSource(),
+        ];
+        static::out($response, $stdFields);
+    }
+
+    public static function jsonSearch(StdFields $stdFields): void
     {
         $response = [
             IndexInterface::TOOK      => $stdFields->getTook(),
@@ -22,7 +32,7 @@ class Output
         static::out($response, $stdFields);
     }
 
-    public static function jsonIndex(StdFields $stdFields)
+    public static function jsonIndex(StdFields $stdFields): void
     {
         $response = [
             $stdFields->getOpType() => $stdFields->isOpStatus(),
@@ -36,7 +46,7 @@ class Output
         static::out($response, $stdFields);
     }
 
-    public static function out(array $response, StdFields $stdFields)
+    public static function out(array $response, StdFields $stdFields): void
     {
         header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
         header("Pragma: no-cache"); // HTTP 1.0.

@@ -2,9 +2,9 @@
 
 namespace pheonixsearch\core;
 
+use pheonixsearch\exceptions\RequestException;
 use pheonixsearch\exceptions\UriException;
 use pheonixsearch\helpers\Highlighter;
-use pheonixsearch\helpers\Json;
 use pheonixsearch\helpers\Timers;
 use pheonixsearch\storage\RedisConnector;
 use pheonixsearch\types\CoreInterface;
@@ -15,6 +15,8 @@ use Predis\Client;
 
 class Core implements CoreInterface
 {
+    use Serializer;
+
     private $routePath = null;
     private $routeQuery = null;
 
@@ -34,23 +36,23 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes  = [];
+    private $docHashes = [];
     private $wordHashes = [];
-    private $result     = [];
+    private $result = [];
 
-    private $requestDocument      = '';
-    private $requestSource        = '';
+    private $requestDocument = '';
+    private $requestSource = '';
 
     private $listWordKeys = [];
     private $hashWordKeys = [];
 
     private $offset = 0;
-    private $limit  = CoreInterface::DEFAULT_LIMIT;
-    private $found  = 0; // incremented counter between phrases & words
+    private $limit = CoreInterface::DEFAULT_LIMIT;
+    private $found = 0; // incremented counter between phrases & words
 
     public $highlight = false;
-    public $preTags   = '';
-    public $postTags  = '';
+    public $preTags = '';
+    public $postTags = '';
 
     /**
      * Core constructor.
@@ -182,16 +184,23 @@ class Core implements CoreInterface
      */
     protected function searchById(): void
     {
-        $tStart = Timers::millitime();
+        if (empty($this->id)) {
+            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_DOC_EMPTY_ID], Errors::REQUEST_URI_DOC_EMPTY_ID);
+        }
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         // get the document hash
         $docSha = $this->redisConn->hget($incrMatch, $this->id);
         // get serialized data
         $data = unserialize($this->redisConn->hget($this->incrKey, $docSha));
-        $took = Timers::millitime() - $tStart;
-        $this->stdFields->setHits()
-        $this->stdFields->setTook($took);
+        if (empty($data)) {
+            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_DOC_ID_NOT_FOUND], Errors::REQUEST_URI_DOC_ID_NOT_FOUND);
+        }
+        $this->stdFields->setOpType(IndexInterface::RESULT_FOUND);
+        $this->stdFields->setOpStatus(true);
+        $source = $this->unser($data[IndexInterface::SOURCE]);
+        $this->stdFields->setSource($source);
         $this->stdFields->setId($data[IndexInterface::ID]);
+        $this->stdFields->setVersion($data[IndexInterface::VERSION]);
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
     }
 
@@ -239,7 +248,7 @@ class Core implements CoreInterface
         foreach ($docs as &$doc) { // perf by ref
             $docHash = md5($doc); // for fast search duplicates only
             if (empty($this->docHashes[$docHash])) { // avoid doubling
-                $resultArray = Json::parse($doc);
+                $resultArray = $this->unser($doc);
                 // search by defined field
                 if (mb_strpos($resultArray[IndexInterface::SOURCE][$field], $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false) {
                     if (++$this->found < $this->offset) {
@@ -271,7 +280,7 @@ class Core implements CoreInterface
             if ($this->found >= $this->limit) {
                 return true;
             }
-            $resultArray    = Json::parse($doc);
+            $resultArray    = $this->unser($doc);
             $this->result[] = Highlighter::highlight($this, $resultArray, $word);
         }
         return false;

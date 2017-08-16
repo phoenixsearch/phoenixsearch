@@ -34,7 +34,8 @@ class RequestHandler
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY],
                 Errors::REQUEST_BODY_IS_EMPTY);
         }
-        if ($this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
+        if (empty($this->requestBodyJson) === false
+            && $this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
         }
         if ($this->requestMethod === HttpBase::HTTP_METHOD_GET) {

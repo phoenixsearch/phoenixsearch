@@ -36,6 +36,8 @@ class StdFields
     // bit mask with OP_TYPE, TOOK, INDEX, TYPE, ID set by default
     private $fieldsBitMask = 0b000011111;
 
+    private $source = [];
+
     /**
      * @return int
      */
@@ -292,5 +294,21 @@ class StdFields
     public function isBitSet(int $bits): bool
     {
         return $this->fieldsBitMask & $bits;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSource(): array
+    {
+        return $this->source;
+    }
+
+    /**
+     * @param array $source
+     */
+    public function setSource(array $source)
+    {
+        $this->source = $source;
     }
 }

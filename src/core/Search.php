@@ -23,7 +23,7 @@ class Search extends Core
             Output::jsonSearch($this->getStdFields());
         } else { // search by ID
             $this->searchById();
-            // todo: output with _source
+            Output::jsonGetById($this->getStdFields());
         }
     }
 
