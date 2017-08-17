@@ -18,15 +18,15 @@ class Core implements CoreInterface
     use Serializer,
         Info;
 
-    private $routePath = null;
+    private $routePath  = null;
     private $routeQuery = null;
 
-    private $index = '';
-    private $indexType = '';
-    private $id = 0;
+    private $index        = '';
+    private $indexType    = '';
+    private $id           = 0;
     private $hashIndexKey = '';
     private $listIndexKey = '';
-    private $incrKey = '';
+    private $incrKey      = '';
 
     private $words = [];
 
@@ -37,27 +37,29 @@ class Core implements CoreInterface
     /** @var StdFields $stdFields */
     private $stdFields = null;
 
-    private $docHashes = [];
+    private $docHashes  = [];
     private $wordHashes = [];
-    private $result = [];
+    private $result     = [];
 
     private $requestDocument = '';
-    private $requestSource = '';
+    private $requestSource   = '';
 
     private $listWordKeys = [];
     private $hashWordKeys = [];
 
     private $offset = 0;
-    private $limit = CoreInterface::DEFAULT_LIMIT;
-    private $found = 0; // incremented counter between phrases & words
+    private $limit  = CoreInterface::DEFAULT_LIMIT;
+    private $found  = 0; // incremented counter between phrases & words
 
     public $highlight = false;
-    public $preTags = '';
-    public $postTags = '';
+    public $preTags   = '';
+    public $postTags  = '';
 
     /**
      * Core constructor.
+     *
      * @param RequestHandler $handler
+     *
      * @throws UriException
      */
     protected function __construct(RequestHandler $handler)
@@ -118,6 +120,7 @@ class Core implements CoreInterface
     protected function getDocInfo(): ?string
     {
         $docSha = sha1($this->requestSource);
+
         return $this->redisConn->hget($this->incrKey, $docSha);
     }
 
@@ -132,6 +135,7 @@ class Core implements CoreInterface
 
     /**
      * @param string $docInfo
+     *
      * @return bool
      */
     protected function updateDocInfo(string $docInfo): bool
@@ -142,6 +146,7 @@ class Core implements CoreInterface
         $this->stdFields->setVersion($docArr[IndexInterface::VERSION]);
         $this->stdFields->setId($docArr[IndexInterface::ID]);
         $this->setDocInfo($docArr);
+
         return true;
     }
 
@@ -163,12 +168,10 @@ class Core implements CoreInterface
                     if (true === $done) {
                         break 2;
                     }
-                } else {
-                    if ($cntWords === 1) {
-                        $done = $this->setMatch($docs, $word);
-                        if (true === $done) {
-                            break 2;
-                        }
+                } else { // if === 1
+                    $done = $this->setMatch($docs, $word);
+                    if (true === $done) {
+                        break 2;
                     }
                 }
             }
@@ -240,9 +243,11 @@ class Core implements CoreInterface
 
     /**
      * Finds documents by phrase match
+     *
      * @param array  $docs   an array of index => document
      * @param string $phrase the phrase to search
      * @param string $field  for md5 field oriented search
+     *
      * @return bool true if limit has been reached, false otherwise
      */
     private function setMatches(array $docs, string $phrase, string $field): bool
@@ -252,7 +257,9 @@ class Core implements CoreInterface
             if (empty($this->docHashes[$docHash])) { // avoid doubling
                 $resultArray = $this->unser($doc);
                 // search by defined field
-                if (mb_strpos($resultArray[IndexInterface::SOURCE][$field], $phrase, null, CoreInterface::DEFAULT_ENCODING) !== false) {
+                if (mb_strpos($resultArray[IndexInterface::SOURCE][$field], $phrase, null, CoreInterface::DEFAULT_ENCODING) !==
+                    false
+                ) {
                     if (++$this->found < $this->offset) {
                         continue;
                     }
@@ -264,13 +271,16 @@ class Core implements CoreInterface
                 }
             }
         }
+
         return false;
     }
 
     /**
      * Finds documents by word match
+     *
      * @param array  $docs
      * @param string $word
+     *
      * @return bool true if limit has been reached, false otherwise
      */
     private function setMatch(array $docs, string $word): bool
@@ -285,6 +295,7 @@ class Core implements CoreInterface
             $resultArray    = $this->unser($doc);
             $this->result[] = Highlighter::highlight($this, $resultArray, $word);
         }
+
         return false;
     }
 
@@ -335,6 +346,7 @@ class Core implements CoreInterface
 
     /**
      * @param string $lKey
+     *
      * @return array
      */
     private function setIndexData(string $lKey): array
@@ -373,6 +385,7 @@ class Core implements CoreInterface
         $this->setInfo($this->stdFields);
         $this->stdFields->setId($data[IndexInterface::ID]);
         $this->stdFields->setTimestamp($data[IndexInterface::TIMESTAMP]);
+
         return $data;
     }
 
