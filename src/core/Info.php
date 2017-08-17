@@ -53,7 +53,7 @@ trait Info
         $this->redisConn->hset(InfoInterface::INFO_INDICES, $index, $this->ser($d));
     }
 
-    public function getInfo(StdFields $stdFields)
+    public function getInfo()
     {
         $indicesInfo = $this->redisConn->hvals(InfoInterface::INFO_INDICES);
         return $indicesInfo;

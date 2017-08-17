@@ -4,6 +4,7 @@ namespace pheonixsearch\core;
 
 use pheonixsearch\exceptions\RequestException;
 use pheonixsearch\helpers\Request;
+use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\EntryInterface;
 use pheonixsearch\types\Errors;
 use pheonixsearch\types\HttpBase;
@@ -19,7 +20,7 @@ class RequestHandler
 
     // options
     private $offset          = 0;
-    private $limit           = 10000;
+    private $limit           = CoreInterface::DEFAULT_LIMIT;
     private $highlight       = false;
     private $preTags         = '';
     private $postTags        = '';
@@ -30,12 +31,14 @@ class RequestHandler
         $this->setRequestMethod($_SERVER['REQUEST_METHOD']);
         $this->setRequestBodyJson(Request::getJsonString());
         if (empty($this->requestBodyJson) && in_array($this->requestMethod,
-                [HttpBase::HTTP_METHOD_GET, HttpBase::HTTP_METHOD_DELETE]) === false) {
+                [HttpBase::HTTP_METHOD_GET, HttpBase::HTTP_METHOD_DELETE]) === false
+        ) {
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY],
                 Errors::REQUEST_BODY_IS_EMPTY);
         }
         if (empty($this->requestBodyJson) === false
-            && $this->requestMethod !== HttpBase::HTTP_METHOD_DELETE) {
+            && $this->requestMethod !== HttpBase::HTTP_METHOD_DELETE
+        ) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
         }
         if ($this->requestMethod === HttpBase::HTTP_METHOD_GET) {
@@ -58,7 +61,7 @@ class RequestHandler
                 $this->setPostTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]));
             }
         }
-        $parsedUri        = parse_url($_SERVER['REQUEST_URI']);
+        $parsedUri = parse_url($_SERVER['REQUEST_URI']);
         $this->setRoutePath(empty($parsedUri[EntryInterface::URI_PATH]) ? null : $parsedUri[EntryInterface::URI_PATH]);
         $this->setRouteQuery(empty($parsedUri[EntryInterface::URI_QUERY]) ? null : $parsedUri[EntryInterface::URI_QUERY]);
     }
@@ -237,6 +240,14 @@ class RequestHandler
     public function setHighlightFields(array $highlightFields)
     {
         $this->highlightFields = $highlightFields;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRoutePathEntities(): array
+    {
+        return explode('/', $this->routePath);
     }
 
 }

@@ -30,6 +30,7 @@ interface IndexInterface
     const TIMED_OUT = 'timed_out';
     const HITS      = 'hits';
     const TOTAL     = 'total';
+    const INDICES   = 'indices';
     // system reserved keywords
     const INDEX          = '_index';
     const TYPE           = '_type';
@@ -40,6 +41,7 @@ interface IndexInterface
     const ALL            = '_all';
     const RESULT         = 'result';
     const DOCUMENT       = '_document';
+    const CAT            = '_cat';
 
     // op results
     const RESULT_DELETED   = 'deleted';

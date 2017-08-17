@@ -14,4 +14,5 @@ class HttpBase
     const HTTP_POST_METHOD   = 'index';
     const HTTP_PUT_METHOD    = 'update';
     const HTTP_DELETE_METHOD = 'delete';
+    const HTTP_INFO_METHOD   = 'info';
 }

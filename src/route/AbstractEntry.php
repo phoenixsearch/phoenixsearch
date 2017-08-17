@@ -8,6 +8,7 @@ use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\Search;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
+use pheonixsearch\types\IndexInterface;
 
 abstract class AbstractEntry implements EntryInterface
 {
@@ -34,15 +35,23 @@ abstract class AbstractEntry implements EntryInterface
      */
     public function getIndexMethod(string $httpMethod)
     {
+        $routeEntities = $this->requestHandler->getRoutePathEntities();
+        if (empty($routeEntities[0]) === false
+            && empty($routeEntities[1]) === false
+            && $routeEntities[0] === IndexInterface::CAT
+            && $routeEntities[1] === IndexInterface::INDICES
+        ) { // info method call
+            return HttpBase::HTTP_INFO_METHOD;
+        }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
 
     /**
      *
      */
-    protected function index()
+    protected function info()
     {
-        $index = new Index($this->requestHandler);
+
     }
 
     /**
