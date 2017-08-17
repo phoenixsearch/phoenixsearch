@@ -46,6 +46,11 @@ class Output
         static::out($response, $stdFields);
     }
 
+    public static function jsonInfo(array $info, $stdFields): void
+    {
+        static::out($info, $stdFields);
+    }
+
     public static function out(array $response, StdFields $stdFields): void
     {
         header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.

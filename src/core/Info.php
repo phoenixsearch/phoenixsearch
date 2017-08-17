@@ -33,7 +33,7 @@ trait Info
             $d = $this->unser($hashData);
             $d[InfoInterface::DOCS_COUNT] = ++$d[InfoInterface::DOCS_COUNT];
             $info = $this->redisConn->info();
-            $d[InfoInterface::STORE_SIZE] = $info[InfoInterface::INFO_USED_MEMORY];
+            $d[InfoInterface::STORE_SIZE] = $info[InfoInterface::MEMORY][InfoInterface::INFO_USED_MEMORY];
             $this->redisConn->hset(InfoInterface::INFO_INDICES, $index, $this->ser($d));
             return false;
         }
@@ -49,13 +49,16 @@ trait Info
         $d[InfoInterface::DOCS_DELETED] = ++$d[InfoInterface::DOCS_DELETED];
         $d[InfoInterface::DOCS_COUNT]   = --$d[InfoInterface::DOCS_COUNT];
         $info = $this->redisConn->info();
-        $d[InfoInterface::STORE_SIZE] = $info[InfoInterface::INFO_USED_MEMORY];
+        $d[InfoInterface::STORE_SIZE] = $info[InfoInterface::MEMORY][InfoInterface::INFO_USED_MEMORY];
         $this->redisConn->hset(InfoInterface::INFO_INDICES, $index, $this->ser($d));
     }
 
     public function getInfo()
     {
         $indicesInfo = $this->redisConn->hvals(InfoInterface::INFO_INDICES);
+        foreach ($indicesInfo as $k => $val) {
+            $indicesInfo[$k] = $this->unser($val);
+        }
         return $indicesInfo;
     }
 }

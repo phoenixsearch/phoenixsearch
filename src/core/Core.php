@@ -288,12 +288,6 @@ class Core implements CoreInterface
         return false;
     }
 
-    public function getCatIndices()
-    {
-        $info = $this->getInfo();
-
-    }
-
     /**
      *  Glues the index with indexType by glue :, if there is no indexType
      *  index will be appended by glue anyway to avoid redundant logic

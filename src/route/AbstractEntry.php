@@ -2,6 +2,7 @@
 
 namespace pheonixsearch\route;
 
+use pheonixsearch\core\CatIndices;
 use pheonixsearch\core\Delete;
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
@@ -36,10 +37,10 @@ abstract class AbstractEntry implements EntryInterface
     public function getIndexMethod(string $httpMethod)
     {
         $routeEntities = $this->requestHandler->getRoutePathEntities();
-        if (empty($routeEntities[0]) === false
-            && empty($routeEntities[1]) === false
-            && $routeEntities[0] === IndexInterface::CAT
-            && $routeEntities[1] === IndexInterface::INDICES
+        if (empty($routeEntities[1]) === false
+            && empty($routeEntities[2]) === false
+            && $routeEntities[1] === IndexInterface::CAT
+            && $routeEntities[2] === IndexInterface::INDICES
         ) { // info method call
             return HttpBase::HTTP_INFO_METHOD;
         }
@@ -51,7 +52,8 @@ abstract class AbstractEntry implements EntryInterface
      */
     protected function info()
     {
-
+        $info = new CatIndices($this->requestHandler);
+        $info->getCat();
     }
 
     /**
