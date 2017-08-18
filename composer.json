@@ -1,7 +1,7 @@
 {
-  "description": "",
-  "type": "rjapi-raml",
-  "name": "rjapi/raml-json-api",
+  "description": "PhoenixSearch is a fast and modern full-text real-time search engine based on Redis + PHP7",
+  "type": "PhoenixSearch",
+  "name": "phoenixsearch/phoenixsearch",
   "license": "MIT",
   "require": {
     "php": "^7.0",
