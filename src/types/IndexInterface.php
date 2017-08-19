@@ -16,14 +16,20 @@ interface IndexInterface
     const QUERY = 'query';
     const TERM  = 'term';
     // offset/limit
-    const OFFSET    = 'offset';
-    const LIMIT     = 'limit';
+    const OFFSET = 'offset';
+    const LIMIT  = 'limit';
     // highlight settings
     const HIGHLIGHT = 'highlight';
     const PRE_TAGS  = 'pre_tags';
     const POST_TAGS = 'post_tags';
     // canonical values
-    const FIELDS = 'fields';
+    const FIELDS       = 'fields';
+    const PROPERTIES   = 'properties';
+    const STRUCTURE    = 'structure';
+    const ALIASES      = 'aliases';
+    const MAPPINGS     = 'mappings';
+    const FIELD_TYPE   = 'type';
+    const IGNORE_ABOVE = 'ignore_above';
 
     // response - StdFields
     const TOOK      = 'took';
@@ -32,16 +38,16 @@ interface IndexInterface
     const TOTAL     = 'total';
     const INDICES   = 'indices';
     // system reserved keywords
-    const INDEX          = '_index';
-    const TYPE           = '_type';
-    const SOURCE         = '_source';
-    const ID             = '_id';
-    const TIMESTAMP      = '_timestamp';
-    const VERSION        = '_version';
-    const ALL            = '_all';
-    const RESULT         = 'result';
-    const DOCUMENT       = '_document';
-    const CAT            = '_cat';
+    const INDEX     = '_index';
+    const TYPE      = '_type';
+    const SOURCE    = '_source';
+    const ID        = '_id';
+    const TIMESTAMP = '_timestamp';
+    const VERSION   = '_version';
+    const ALL       = '_all';
+    const RESULT    = 'result';
+    const DOCUMENT  = '_document';
+    const CAT       = '_cat';
 
     // op results
     const RESULT_DELETED   = 'deleted';

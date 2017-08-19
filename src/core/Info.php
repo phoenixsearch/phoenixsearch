@@ -16,7 +16,7 @@ use Predis\Client;
 trait Info
 {
     /**
-     *
+     * Sets system and index info
      * @param StdFields $stdFields
      *
      * @return bool
@@ -55,6 +55,10 @@ trait Info
         return true;
     }
 
+    /**
+     * Decrement doc info on delete
+     * @param StdFields $stdFields
+     */
     public function decrInfo(StdFields $stdFields)
     {
         $index                          = $stdFields->getIndex();

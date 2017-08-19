@@ -13,7 +13,11 @@ use pheonixsearch\types\CoreInterface;
 
 trait Serializer
 {
-    private function ser(array $data): string
+    /**
+     * @param array $data
+     * @return string
+     */
+    protected function ser(array $data): string
     {
         return str_replace(
             CoreInterface::DOUBLE_QUOTES, CoreInterface::DOUBLE_QUOTES_ESC,
@@ -21,7 +25,11 @@ trait Serializer
         );
     }
 
-    private function unser(string $data): array
+    /**
+     * @param string $data
+     * @return array
+     */
+    protected function unser(string $data): array
     {
         return unserialize(
             str_replace(

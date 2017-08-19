@@ -24,13 +24,8 @@ class Index extends Core
         $created = false;
         $docInfo = $this->getDocInfo();
         if ($docInfo === null) { // insert
-            foreach ($this->jsonArray as $field => &$value) { // ex.: name => Alice Hacker
-                $words = explode(IndexInterface::SYMBOL_SPACE, $value);
-                foreach ($words as &$word) {
-                    $this->insertWord($word, $field);
-                }
-            }
-            $this->setDictHashData();
+            $this->setCanonicalIndex();
+            $this->insert();
             $stdFields->setResult(IndexInterface::RESULT_CREATED);
             $created = true;
         } else { // update
@@ -42,5 +37,19 @@ class Index extends Core
         $stdFields->setOpStatus($created);
         $stdFields->setTook($took);
         Output::jsonIndex($stdFields);
+    }
+
+    /**
+     *  Inserts data into inverted index pre-building property fields
+     */
+    private function insert(): void
+    {
+        foreach ($this->jsonArray as $field => &$value) { // ex.: name => Alice Hacker
+            $words = explode(IndexInterface::SYMBOL_SPACE, $value);
+            foreach ($words as &$word) {
+                $this->insertWord($word, $field);
+            }
+        }
+        $this->setDictHashData();
     }
 }
