@@ -1,6 +1,10 @@
 # PhoenixSearch
 PhoenixSearch is a fast and modern full-text real-time search engine based on Redis + PHP7
 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/phoenixsearch/phoenixsearch/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/phoenixsearch/phoenixsearch/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/phoenixsearch/phoenixsearch/badges/build.png?b=master)](https://scrutinizer-ci.com/g/phoenixsearch/phoenixsearch/build-status/master)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ![alt Redis logo](https://github.com/phoenixsearch/phoenixsearch/blob/master/tests/images/redis.png)
 ![alt PHP logo](https://github.com/phoenixsearch/phoenixsearch/blob/master/tests/images/php.png)
 
