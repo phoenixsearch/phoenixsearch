@@ -4,12 +4,21 @@ PhoenixSearch is a fast and modern full-text real-time search engine based on Re
 ![alt Redis logo](https://github.com/phoenixsearch/pheonixsearch/blob/master/tests/images/redis.png)
 ![alt PHP logo](https://github.com/phoenixsearch/pheonixsearch/blob/master/tests/images/php.png)
 
-Installation via composer
+* [Introduction](#user-content-introduction)
+* [Installation](#user-content-installation-via-composer)
+* [Index document](#user-content-index-document)
+* [Search documents](#user-content-search-documents)
+    * [Search with offset/limit](#user-content-search-with-offset/limit)
+    * [Search with highlighted query](#user-content-search-with-highlighted-query)    
+* [Delete document](#user-content-delete-document)
+* [Getting indices info](#user-content-getting-indices-info) 
+
+### Installation via composer
 ```sh
-composer create-project phoenixsearch/pheonixsearch path/
+composer create-project phoenixsearch/phoenixsearch yourprojectpath/
 ```
 
-Index document.
+### Index document
 
 Request:
 ```json
@@ -36,7 +45,7 @@ Response:
 }
 ```
 
-Update document with same content (idempotent operation).
+#### Update document with same content (idempotent operation).
 
 Request:
 ```json
@@ -63,7 +72,7 @@ Response:
 }
 ```
 
-Search documents.
+### Search documents
 
 Request:
 ```json
@@ -111,7 +120,7 @@ Response:
 }
 ```
 
-Search with offset/limit.
+#### Search with offset/limit
 
 Request:
 
@@ -192,7 +201,7 @@ Response:
 }
 ```
 
-Search with highlighting query.
+#### Search with highlighted query
 ```json
 {   
     "offset":5, 
@@ -272,7 +281,7 @@ Search with highlighting query.
 }
 ```
 
-Delete document.
+### Delete document
 
 ```json
 DELETE http://pheonixsearch.loc/myindex/myindextype/2?pretty
@@ -304,7 +313,7 @@ For non-existent document:
 }
 ```
 
-Getting indices info with human readable store size:
+### Getting indices info
 
 ```json
 GET http://pheonixsearch.loc/_cat/indices
