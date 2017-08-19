@@ -27,7 +27,7 @@ Response:
 ```json
 {
     "created": true,
-    "took": 76,
+    "took": 63,
     "_index": "myindex",
     "_type": "myindextype",
     "_id": 1,
