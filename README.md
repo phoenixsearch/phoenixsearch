@@ -1,8 +1,8 @@
 # PhoenixSearch
 PhoenixSearch is a fast and modern full-text real-time search engine based on Redis + PHP7
 
-![alt PHP logo](https://github.com/phoenixsearch/pheonixsearch/blob/master/tests/images/php.png)
 ![alt Redis logo](https://github.com/phoenixsearch/pheonixsearch/blob/master/tests/images/redis.png)
+![alt PHP logo](https://github.com/phoenixsearch/pheonixsearch/blob/master/tests/images/php.png)
 
 Installation via composer
 ```sh
@@ -121,10 +121,10 @@ GET http://pheonixsearch.loc/myindex/myindextype?pretty
 
 ```json
 {   
-  "offset":0, 
-  "limit":15, 
+  "offset":5, 
+  "limit":10, 
     "query" : {
-        "term" : { "title" : "Lorem ipsum" }
+        "term" : { "text" : "quis enim" }
     }
 }
 ```
@@ -132,19 +132,29 @@ GET http://pheonixsearch.loc/myindex/myindextype?pretty
 Response:
 ```json
 {
-    "took": 11,
+    "took": 27,
     "timed_out": false,
     "hits": {
-        "total": 3,
+        "total": 5,
         "hits": [
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 1415,
-                "_timestamp": 1502998633,
+                "_id": 191,
+                "_timestamp": 1502998465,
                 "_source": {
-                    "title": "Prof.",
-                    "text": "Iste velit aperiam ut sunt ut. Enim architecto velit quis enim asperiores nisi mollitia recusandae. Ullam harum vitae dicta."
+                    "title": "Ms.",
+                    "text": "Rerum maxime possimus unde expedita rerum. Inventore quia quis enim in non. Necessitatibus reprehenderit facere qui quia."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": 4349,
+                "_timestamp": 1503120647,
+                "_source": {
+                    "title": "Mr.",
+                    "text": "Expedita dolorum quis enim nesciunt rerum repellendus consequatur. Iure voluptatem quia dicta porro doloremque. Voluptas architecto quis quos voluptatibus amet."
                 }
             },
             {
@@ -160,11 +170,101 @@ Response:
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 191,
-                "_timestamp": 1502998465,
+                "_id": 8694,
+                "_timestamp": 1503120980,
+                "_source": {
+                    "title": "Mr.",
+                    "text": "Sequi aut tempore quisquam labore odio libero. Et sunt quis enim. Animi necessitatibus nihil necessitatibus magni."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": 5510,
+                "_timestamp": 1503120726,
+                "_source": {
+                    "title": "Prof.",
+                    "text": "Distinctio expedita enim dolor et explicabo. Saepe eligendi ullam vero adipisci sed quis enim. Quis sunt est libero dolore assumenda qui et."
+                }
+            }
+        ]
+    }
+}
+```
+
+Search with highlighting query.
+```json
+{   
+    "offset":5, 
+    "limit":10, 
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "name" : {}, "text" : {}
+        }
+    },
+    "query" : {
+        "term" : { "text" : "quis enim" }
+    }
+}
+```
+
+```json
+{
+    "took": 37,
+    "timed_out": false,
+    "hits": {
+        "total": 5,
+        "hits": [
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "191",
+                "_timestamp": "1502998465",
                 "_source": {
                     "title": "Ms.",
-                    "text": "Rerum maxime possimus unde expedita rerum. Inventore quia quis enim in non. Necessitatibus reprehenderit facere qui quia."
+                    "text": "Rerum maxime possimus unde expedita rerum. Inventore quia <tag1><tag2>quis enim</tag1></tag2> in non. Necessitatibus reprehenderit facere qui quia."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "4349",
+                "_timestamp": "1503120647",
+                "_source": {
+                    "title": "Mr.",
+                    "text": "Expedita dolorum <tag1><tag2>quis enim</tag1></tag2> nesciunt rerum repellendus consequatur. Iure voluptatem quia dicta porro doloremque. Voluptas architecto quis quos voluptatibus amet."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "1026",
+                "_timestamp": "1502998620",
+                "_source": {
+                    "title": "Miss",
+                    "text": "Hic magnam deserunt numquam ut vero qui reiciendis. Odio nemo repellendus hic est doloribus delectus. Dicta <tag1><tag2>quis enim</tag1></tag2> et voluptatem."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "8694",
+                "_timestamp": "1503120980",
+                "_source": {
+                    "title": "Mr.",
+                    "text": "Sequi aut tempore quisquam labore odio libero. Et sunt <tag1><tag2>quis enim</tag1></tag2>. Animi necessitatibus nihil necessitatibus magni."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "5510",
+                "_timestamp": "1503120726",
+                "_source": {
+                    "title": "Prof.",
+                    "text": "Distinctio expedita enim dolor et explicabo. Saepe eligendi ullam vero adipisci sed <tag1><tag2>quis enim</tag1></tag2>. Quis sunt est libero dolore assumenda qui et."
                 }
             }
         ]
@@ -178,7 +278,7 @@ Delete document.
 DELETE http://pheonixsearch.loc/myindex/myindextype/2?pretty
 ```
 
-For existing document.
+For existing document it returns:
 ```json
 {
     "found": true,
@@ -191,7 +291,7 @@ For existing document.
 }
 ```
 
-For non-existent document.
+For non-existent document:
 ```json
 {
     "found": false,
@@ -204,7 +304,7 @@ For non-existent document.
 }
 ```
 
-Get indices info:
+Getting indices info with human readable store size:
 
 ```json
 GET http://pheonixsearch.loc/_cat/indices
@@ -213,13 +313,16 @@ GET http://pheonixsearch.loc/_cat/indices
 ```json
 [
     {
+        "store_size": "456.91M"
+    },
+    {
         "_index": "myanotherindex",
         "docs_count": 2,
         "docs_deleted": 0
     },
     {
         "_index": "myindex",
-        "docs_count": 1955,
+        "docs_count": 12687,
         "docs_deleted": 1
     }
 ]

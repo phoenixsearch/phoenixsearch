@@ -41,7 +41,9 @@ class RequestHandler
         ) {
             $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
         }
-        if ($this->requestMethod === HttpBase::HTTP_METHOD_GET) {
+        if ($this->requestMethod === HttpBase::HTTP_METHOD_GET
+            || $this->requestMethod === HttpBase::HTTP_METHOD_POST
+        ) {
             if (empty($this->requestBodyArray[IndexInterface::OFFSET]) === false) {
                 $this->setOffset($this->requestBodyArray[IndexInterface::OFFSET]);
             }

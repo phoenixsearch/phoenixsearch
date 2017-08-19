@@ -77,7 +77,8 @@ class Core implements CoreInterface
             throw new UriException(Errors::REQUEST_MESSAGES[Errors::REQUEST_URI_EMPTY_INDEX], Errors::REQUEST_URI_EMPTY_INDEX);
         }
         $this->requestHandler = $handler;
-        if ($this->requestHandler->getRequestMethod() === HttpBase::HTTP_METHOD_GET) { // search
+        if ($this->requestHandler->getRequestMethod() === HttpBase::HTTP_METHOD_GET
+            || $this->requestHandler->getRequestMethod() === HttpBase::HTTP_METHOD_POST) { // search
             $this->offset    = $this->requestHandler->getOffset();
             $this->limit     = $this->requestHandler->getLimit();
             $this->highlight = $this->requestHandler->isHighlight();
@@ -260,14 +261,14 @@ class Core implements CoreInterface
                 if (mb_strpos($resultArray[IndexInterface::SOURCE][$field], $phrase, null, CoreInterface::DEFAULT_ENCODING) !==
                     false
                 ) {
-                    if (++$this->found < $this->offset) {
+                    if (++$this->found <= $this->offset) {
                         continue;
-                    }
-                    if ($this->found >= $this->limit) {
-                        return true;
                     }
                     $this->result[]            = Highlighter::highlight($this, $resultArray, $phrase);
                     $this->docHashes[$docHash] = 1;
+                    if ($this->found >= $this->limit) {
+                        return true;
+                    }
                 }
             }
         }
@@ -289,11 +290,11 @@ class Core implements CoreInterface
             if (++$this->found < $this->offset) {
                 continue;
             }
+            $resultArray    = $this->unser($doc);
+            $this->result[] = Highlighter::highlight($this, $resultArray, $word);
             if ($this->found >= $this->limit) {
                 return true;
             }
-            $resultArray    = $this->unser($doc);
-            $this->result[] = Highlighter::highlight($this, $resultArray, $word);
         }
 
         return false;
