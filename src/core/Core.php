@@ -211,7 +211,7 @@ class Core extends BaseCore
                     }
                     $this->result[]            = Highlighter::highlight($this, $resultArray, $phrase);
                     $this->docHashes[$docHash] = 1;
-                    if ($this->found >= $this->limit) {
+                    if ($this->found >= ($this->offset + $this->limit)) {
                         return true;
                     }
                 }
@@ -232,14 +232,14 @@ class Core extends BaseCore
     private function setMatch(array $docs, string $word): bool
     {
         foreach ($docs as &$doc) { // perf by ref
-            if (++$this->found < $this->offset) {
+            if (++$this->found <= $this->offset) {
                 continue;
+            }
+            if ($this->found > ($this->offset + $this->limit)) {
+                return true;
             }
             $resultArray    = $this->unser($doc);
             $this->result[] = Highlighter::highlight($this, $resultArray, $word);
-            if ($this->found >= $this->limit) {
-                return true;
-            }
         }
 
         return false;

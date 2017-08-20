@@ -134,10 +134,10 @@ GET http://pheonixsearch.loc/myindex/myindextype?pretty
 
 ```json
 {   
-  "offset":5, 
-  "limit":10, 
+    "offset":10, 
+    "limit":5, 
     "query" : {
-        "term" : { "text" : "quis enim" }
+        "term" : { "text" : "quis" }
     }
 }
 ```
@@ -145,7 +145,7 @@ GET http://pheonixsearch.loc/myindex/myindextype?pretty
 Response:
 ```json
 {
-    "took": 27,
+    "took": 11,
     "timed_out": false,
     "hits": {
         "total": 5,
@@ -153,51 +153,51 @@ Response:
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 191,
-                "_timestamp": 1502998465,
+                "_id": 695,
+                "_timestamp": 1503231848,
                 "_source": {
                     "title": "Ms.",
-                    "text": "Rerum maxime possimus unde expedita rerum. Inventore quia quis enim in non. Necessitatibus reprehenderit facere qui quia."
+                    "text": "Et aut et dolor assumenda ea. Iste corrupti quis quis voluptas similique quos tenetur. Et nisi dolore quod quidem architecto qui."
                 }
             },
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 4349,
-                "_timestamp": 1503120647,
+                "_id": 2027,
+                "_timestamp": 1503231889,
                 "_source": {
-                    "title": "Mr.",
-                    "text": "Expedita dolorum quis enim nesciunt rerum repellendus consequatur. Iure voluptatem quia dicta porro doloremque. Voluptas architecto quis quos voluptatibus amet."
+                    "title": "Dr.",
+                    "text": "Quae ut ad omnis est. Impedit reiciendis illo aut magnam fugit. Sed ratione illum quibusdam illum et dolores quis quia."
                 }
             },
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 1026,
-                "_timestamp": 1502998620,
+                "_id": 4506,
+                "_timestamp": 1503232042,
                 "_source": {
-                    "title": "Miss",
-                    "text": "Hic magnam deserunt numquam ut vero qui reiciendis. Odio nemo repellendus hic est doloribus delectus. Dicta quis enim et voluptatem."
+                    "title": "Dr.",
+                    "text": "Necessitatibus quod est commodi accusamus. Occaecati quis nam veritatis quia. Dicta a non ex non repellendus sed ipsa. Molestiae aliquam quia dolor porro laboriosam corporis consequatur."
                 }
             },
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 8694,
-                "_timestamp": 1503120980,
+                "_id": 4568,
+                "_timestamp": 1503232046,
                 "_source": {
-                    "title": "Mr.",
-                    "text": "Sequi aut tempore quisquam labore odio libero. Et sunt quis enim. Animi necessitatibus nihil necessitatibus magni."
+                    "title": "Dr.",
+                    "text": "Magnam quis nihil aliquid nihil enim. Ad id odio tenetur aut. Nihil ea iusto aliquam ut."
                 }
             },
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": 5510,
-                "_timestamp": 1503120726,
+                "_id": 7398,
+                "_timestamp": 1503232264,
                 "_source": {
-                    "title": "Prof.",
-                    "text": "Distinctio expedita enim dolor et explicabo. Saepe eligendi ullam vero adipisci sed quis enim. Quis sunt est libero dolore assumenda qui et."
+                    "title": "Mrs.",
+                    "text": "Non adipisci sunt quisquam sint ullam qui sed. Ut voluptate eum quia quia. Nihil blanditiis eos quis fuga unde reprehenderit veritatis voluptatem. Dolorum neque temporibus vel reiciendis voluptatem."
                 }
             }
         ]
@@ -209,7 +209,7 @@ Response:
 ```json
 {   
     "offset":5, 
-    "limit":10, 
+    "limit":5, 
     "highlight" : {
         "pre_tags" : ["<tag1>", "<tag2>"],
         "post_tags" : ["</tag1>", "</tag2>"],
@@ -225,7 +225,7 @@ Response:
 
 ```json
 {
-    "took": 37,
+    "took": 46,
     "timed_out": false,
     "hits": {
         "total": 5,
@@ -233,51 +233,51 @@ Response:
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": "191",
-                "_timestamp": "1502998465",
+                "_id": "7483",
+                "_timestamp": "1503232272",
                 "_source": {
-                    "title": "Ms.",
-                    "text": "Rerum maxime possimus unde expedita rerum. Inventore quia <tag1><tag2>quis enim</tag1></tag2> in non. Necessitatibus reprehenderit facere qui quia."
+                    "title": "Dr.",
+                    "text": "Pariatur aut consequatur cumque dolores. Hic quis tempora quia error suscipit <tag1><tag2>quis enim</tag1></tag2> omnis. Et ut aperiam voluptatum officia rem vitae quod. Cupiditate qui et commodi est quod."
                 }
             },
             {
                 "_index": "myindex",
                 "_type": "myindextype",
-                "_id": "4349",
-                "_timestamp": "1503120647",
-                "_source": {
-                    "title": "Mr.",
-                    "text": "Expedita dolorum <tag1><tag2>quis enim</tag1></tag2> nesciunt rerum repellendus consequatur. Iure voluptatem quia dicta porro doloremque. Voluptas architecto quis quos voluptatibus amet."
-                }
-            },
-            {
-                "_index": "myindex",
-                "_type": "myindextype",
-                "_id": "1026",
-                "_timestamp": "1502998620",
-                "_source": {
-                    "title": "Miss",
-                    "text": "Hic magnam deserunt numquam ut vero qui reiciendis. Odio nemo repellendus hic est doloribus delectus. Dicta <tag1><tag2>quis enim</tag1></tag2> et voluptatem."
-                }
-            },
-            {
-                "_index": "myindex",
-                "_type": "myindextype",
-                "_id": "8694",
-                "_timestamp": "1503120980",
-                "_source": {
-                    "title": "Mr.",
-                    "text": "Sequi aut tempore quisquam labore odio libero. Et sunt <tag1><tag2>quis enim</tag1></tag2>. Animi necessitatibus nihil necessitatibus magni."
-                }
-            },
-            {
-                "_index": "myindex",
-                "_type": "myindextype",
-                "_id": "5510",
-                "_timestamp": "1503120726",
+                "_id": "3973",
+                "_timestamp": "1503232006",
                 "_source": {
                     "title": "Prof.",
-                    "text": "Distinctio expedita enim dolor et explicabo. Saepe eligendi ullam vero adipisci sed <tag1><tag2>quis enim</tag1></tag2>. Quis sunt est libero dolore assumenda qui et."
+                    "text": "Corporis provident tempore omnis voluptatem voluptates distinctio aliquam voluptatem. Non quis <tag1><tag2>quis enim</tag1></tag2> nulla aliquid quidem eligendi. Rerum et mollitia consequuntur consequatur."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "3276",
+                "_timestamp": "1503231961",
+                "_source": {
+                    "title": "Miss",
+                    "text": "Distinctio voluptatem autem exercitationem quo cumque. Labore omnis sapiente qui itaque. Sunt iusto et porro id <tag1><tag2>quis enim</tag1></tag2> corrupti. Quaerat id doloribus est adipisci et debitis voluptas."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "3827",
+                "_timestamp": "1503231997",
+                "_source": {
+                    "title": "Dr.",
+                    "text": "Iure est culpa vitae blanditiis explicabo voluptatem aliquam. Nostrum ullam quo ipsum reprehenderit magni officiis dolor. Quo <tag1><tag2>quis enim</tag1></tag2> facilis quidem facilis quaerat."
+                }
+            },
+            {
+                "_index": "myindex",
+                "_type": "myindextype",
+                "_id": "9524",
+                "_timestamp": "1503232463",
+                "_source": {
+                    "title": "Miss",
+                    "text": "Nam dolorem et laboriosam <tag1><tag2>quis enim</tag1></tag2> voluptas. Rerum vel nihil delectus fugit qui. Tempore quis commodi error provident aperiam esse. Dolorum nulla ipsa molestias veritatis dolorem sed distinctio."
                 }
             }
         ]
@@ -340,6 +340,7 @@ GET http://pheonixsearch.loc/_cat/indices
     }
 ]
 ```
+The `store_size` is the size of storage for all indices got from Redis.
 
 ### Getting detailed index info
 
