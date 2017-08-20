@@ -159,7 +159,6 @@ class BaseCore implements CoreInterface
         } else if (empty($this->indexType) === false
             && empty($data[$this->index][IndexInterface::MAPPINGS][$this->indexType])
         ) {// check for type and update if there is no alike
-            // todo: there can be indexType or new field updated
             $this->setMappings($data);
             $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
         } else { // setting new fields with whitespace type by default
