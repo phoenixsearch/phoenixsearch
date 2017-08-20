@@ -153,7 +153,6 @@ class BaseCore implements CoreInterface
         if (empty($data)) { // just fill-in new index data
             $data[$this->index] = [
                 IndexInterface::ALIASES  => [],
-                IndexInterface::MAPPINGS => [$this->indexType => [IndexInterface::PROPERTIES => []]],
             ];
             $this->setMappings($data);
             $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
@@ -171,6 +170,10 @@ class BaseCore implements CoreInterface
         }
     }
 
+    /**
+     * @param array $data
+     * @param bool  $isFields
+     */
     private function setMappings(array &$data, bool $isFields = false): void
     {
         $jsonArray = $this->requestHandler->getRequestBodyArray();
@@ -205,6 +208,10 @@ class BaseCore implements CoreInterface
         }
     }
 
+    /**
+     * @param array  $data
+     * @param string $field
+     */
     private function setMapToIndex(array &$data, string $field): void
     {
         $data[$this->index][IndexInterface::MAPPINGS][IndexInterface::PROPERTIES][$field] = [
@@ -218,6 +225,10 @@ class BaseCore implements CoreInterface
         ];
     }
 
+    /**
+     * @param array  $data
+     * @param string $field
+     */
     private function setMapToType(array &$data, string $field): void
     {
         $data[$this->index][IndexInterface::MAPPINGS][$this->indexType][IndexInterface::PROPERTIES][$field] = [
