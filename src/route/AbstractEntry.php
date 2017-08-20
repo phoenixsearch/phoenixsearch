@@ -23,13 +23,17 @@ abstract class AbstractEntry implements EntryInterface
         HttpBase::HTTP_METHOD_DELETE => HttpBase::HTTP_DELETE_METHOD,
     ];
 
+    /**
+     * AbstractEntry constructor.
+     * @param RequestHandler $handler
+     */
     protected function __construct(RequestHandler $handler)
     {
         $this->requestHandler = $handler;
     }
 
     /**
-     *
+     * Routing detection method with method match
      * @param string $httpMethod http method to match
      *
      * @return string   method to call
@@ -44,16 +48,30 @@ abstract class AbstractEntry implements EntryInterface
         ) { // info method call
             return HttpBase::HTTP_INFO_METHOD;
         }
+        if (empty($routeEntities[1]) === false && empty($routeEntities[2])
+            && empty($this->requestHandler->getRequestBodyArray())
+        ) { // index info call - we got only GET and index route
+            return HttpBase::HTTP_INDEX_INFO_METHOD;
+        }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
 
     /**
-     *
+     *  Gets all info about indices
      */
     protected function info()
     {
         $info = new CatIndices($this->requestHandler);
         $info->getCat();
+    }
+
+    /**
+     * Gets index detailed info with props
+     */
+    protected function indexInfo()
+    {
+        $info = new CatIndices($this->requestHandler);
+        $info->getCatIndex();
     }
 
     /**

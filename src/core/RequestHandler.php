@@ -13,7 +13,7 @@ use pheonixsearch\types\IndexInterface;
 class RequestHandler
 {
     private $requestBodyJson  = '';
-    private $requestBodyArray = null;
+    private $requestBodyArray = [];
     private $routePath        = null;
     private $routeQuery       = null;
     private $requestMethod    = '';

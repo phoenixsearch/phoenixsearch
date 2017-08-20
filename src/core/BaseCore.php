@@ -23,10 +23,10 @@ class BaseCore implements CoreInterface
     public $requestHandler = null;
 
     protected $requestDocument = '';
-    protected $requestSource = '';
-    protected $hashIndexKey  = '';
-    protected $listIndexKey  = '';
-    protected $incrKey       = '';
+    protected $requestSource   = '';
+    protected $hashIndexKey    = '';
+    protected $listIndexKey    = '';
+    protected $incrKey         = '';
 
     protected $routePath  = null;
     protected $routeQuery = null;
@@ -34,6 +34,8 @@ class BaseCore implements CoreInterface
     protected $index     = '';
     protected $indexType = '';
     protected $id        = 0;
+
+    private $isNewField = false;
 
     /**
      * BaseCore constructor.
@@ -43,9 +45,9 @@ class BaseCore implements CoreInterface
     protected function __construct(RequestHandler $handler)
     {
         $this->requestHandler = $handler;
-        $this->redisConn  = RedisConnector::getInstance();
-        $this->routePath  = $handler->getRoutePath();
-        $this->routeQuery = $handler->getRouteQuery();
+        $this->redisConn      = RedisConnector::getInstance();
+        $this->routePath      = $handler->getRoutePath();
+        $this->routeQuery     = $handler->getRouteQuery();
         // parse index/type from path
         $pathArray = explode('/', $this->routePath);
         if (empty($pathArray[1]) === false) {
@@ -146,28 +148,87 @@ class BaseCore implements CoreInterface
      */
     protected function setCanonicalIndex(): void
     {
-        $structure = $this->redisConn->hget($this->incrKey, IndexInterface::STRUCTURE);
-        if (empty($structure)) {
-            $jsonArray               = $this->requestHandler->getRequestBodyArray();
+        $got  = $this->redisConn->hget($this->index, IndexInterface::STRUCTURE);
+        $data = (null === $got) ? [] : $this->unser($got);
+        if (empty($data)) { // just fill-in new index data
             $data[$this->index] = [
                 IndexInterface::ALIASES  => [],
                 IndexInterface::MAPPINGS => [$this->indexType => [IndexInterface::PROPERTIES => []]],
             ];
-            foreach ($jsonArray as $field => $value) {
-                $data[$this->index][IndexInterface::MAPPINGS][$this->indexType][IndexInterface::PROPERTIES] = [
-                    $field => [
-                        IndexInterface::FIELD_TYPE => TypesInterface::TEXT,
-                        IndexInterface::FIELDS     => [
-                            TypesInterface::WHITESPACE => [
-                                IndexInterface::FIELD_TYPE   => TypesInterface::WHITESPACE,
-                                IndexInterface::IGNORE_ABOVE => CoreInterface::DEFAULT_IGNORE,
-                            ],
-                        ],
-                    ],
-                ];
+            $this->setMappings($data);
+            $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
+        } else if (empty($this->indexType) === false
+            && empty($data[$this->index][IndexInterface::MAPPINGS][$this->indexType])
+        ) {// check for type and update if there is no alike
+            // todo: there can be indexType or new field updated
+            $this->setMappings($data);
+            $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
+        } else { // setting new fields with whitespace type by default
+            $this->setMappings($data, true);
+            if (true === $this->isNewField) {
+                $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
             }
-            $this->redisConn->hset($this->incrKey, IndexInterface::STRUCTURE, $this->ser($data));
         }
+    }
+
+    private function setMappings(array &$data, bool $isFields = false): void
+    {
+        $jsonArray = $this->requestHandler->getRequestBodyArray();
+        if (true === $isFields) {
+            if (empty($this->indexType)) {
+                foreach ($jsonArray as $field => $value) {
+                    if (empty($data[$this->index][IndexInterface::MAPPINGS][IndexInterface::PROPERTIES][$field])) {
+                        // got the new field
+                        $this->setMapToIndex($data, $field);
+                        $this->isNewField = true;
+                    }
+                }
+            } else {
+                foreach ($jsonArray as $field => $value) {
+                    if (empty($data[$this->index][IndexInterface::MAPPINGS][$this->indexType][IndexInterface::PROPERTIES][$field])) {
+                        // got the new field
+                        $this->setMapToType($data, $field);
+                        $this->isNewField = true;
+                    }
+                }
+            }
+        } else {
+            if (empty($this->indexType)) {
+                foreach ($jsonArray as $field => $value) {
+                    $this->setMapToIndex($data, $field);
+                }
+            } else {
+                foreach ($jsonArray as $field => $value) {
+                    $this->setMapToType($data, $field);
+                }
+            }
+        }
+    }
+
+    private function setMapToIndex(array &$data, string $field): void
+    {
+        $data[$this->index][IndexInterface::MAPPINGS][IndexInterface::PROPERTIES][$field] = [
+            IndexInterface::FIELD_TYPE => TypesInterface::TEXT,
+            IndexInterface::FIELDS     => [
+                TypesInterface::WHITESPACE => [
+                    IndexInterface::FIELD_TYPE   => TypesInterface::WHITESPACE,
+                    IndexInterface::IGNORE_ABOVE => CoreInterface::DEFAULT_IGNORE,
+                ],
+            ],
+        ];
+    }
+
+    private function setMapToType(array &$data, string $field): void
+    {
+        $data[$this->index][IndexInterface::MAPPINGS][$this->indexType][IndexInterface::PROPERTIES][$field] = [
+            IndexInterface::FIELD_TYPE => TypesInterface::TEXT,
+            IndexInterface::FIELDS     => [
+                TypesInterface::WHITESPACE => [
+                    IndexInterface::FIELD_TYPE   => TypesInterface::WHITESPACE,
+                    IndexInterface::IGNORE_ABOVE => CoreInterface::DEFAULT_IGNORE,
+                ],
+            ],
+        ];
     }
 
     /**

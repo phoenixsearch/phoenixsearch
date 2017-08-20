@@ -78,7 +78,7 @@ trait Info
         $this->redisConn->hset(InfoInterface::INFO_INDICES, $index, $this->ser($d));
     }
 
-    public function getInfo()
+    public function getInfo(): array
     {
         $indicesInfo = $this->redisConn->hvals(InfoInterface::INFO_INDICES);
         foreach ($indicesInfo as $k => $val) {
@@ -86,5 +86,11 @@ trait Info
         }
 
         return $indicesInfo;
+    }
+
+    public function getIndexInfo(): array
+    {
+        $indexInfo = $this->redisConn->hget($this->index, IndexInterface::STRUCTURE);
+        return $this->unser($indexInfo);
     }
 }

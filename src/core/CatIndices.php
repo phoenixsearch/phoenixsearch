@@ -26,4 +26,10 @@ class CatIndices extends Core
         $info = $this->getInfo();
         Output::jsonInfo($info, $this->getStdFields());
     }
+
+    public function getCatIndex()
+    {
+        $info = $this->getIndexInfo();
+        Output::jsonInfo($info, $this->getStdFields());
+    }
 }
