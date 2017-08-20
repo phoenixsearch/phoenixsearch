@@ -14,7 +14,8 @@ PhoenixSearch is a fast and modern full-text real-time search engine based on Re
     * [Search with offset/limit](#user-content-search-with-offset/limit)
     * [Search with highlighted query](#user-content-search-with-highlighted-query)    
 * [Delete document](#user-content-delete-document)
-* [Getting indices info](#user-content-getting-indices-info) 
+* [Getting indices info](#user-content-getting-indices-info)
+* [Getting detailed index info](#user-content-getting-detailed-index-info) 
 
 ### Installation via composer
 ```sh
@@ -339,3 +340,53 @@ GET http://pheonixsearch.loc/_cat/indices
     }
 ]
 ```
+
+### Getting detailed index info
+
+```json
+GET http://pheonixsearch.loc/myindex
+```
+
+```json
+{
+    "myindex": {
+        "aliases": [],
+        "mappings": {
+            "myindextype": {
+                "properties": {
+                    "title": {
+                        "type": "text",
+                        "fields": {
+                            "whitespace": {
+                                "type": "whitespace",
+                                "ignore_above": 0
+                            }
+                        }
+                    },
+                    "text": {
+                        "type": "text",
+                        "fields": {
+                            "whitespace": {
+                                "type": "whitespace",
+                                "ignore_above": 0
+                            }
+                        }
+                    },
+                    "data": {
+                        "type": "text",
+                        "fields": {
+                            "whitespace": {
+                                "type": "whitespace",
+                                "ignore_above": 0
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+`ignore_above` means no restriction on string(text) length is applied, `whitespace` type is the default type 
+of inverted index analyzer which just breaks text by whitespace tokens.

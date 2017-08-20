@@ -2,6 +2,8 @@
 
 namespace pheonixsearch\core;
 
+use pheonixsearch\exceptions\RequestException;
+use pheonixsearch\types\Errors;
 use pheonixsearch\types\IndexInterface;
 use pheonixsearch\types\InfoInterface;
 use Predis\Client;
@@ -91,6 +93,9 @@ trait Info
     public function getIndexInfo(): array
     {
         $indexInfo = $this->redisConn->hget($this->index, IndexInterface::STRUCTURE);
+        if (empty($indexInfo)) {
+            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_INDEX_NOT_FOUND], Errors::REQUEST_INDEX_NOT_FOUND);
+        }
         return $this->unser($indexInfo);
     }
 }

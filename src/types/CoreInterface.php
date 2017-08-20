@@ -23,5 +23,5 @@ interface CoreInterface
     const JSON_PRETTY_PRINT = 'pretty';
 
     const DEFAULT_LIMIT  = 10000;
-    const DEFAULT_IGNORE = 1 << 7;
+    const DEFAULT_IGNORE = 0;
 }
