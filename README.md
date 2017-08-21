@@ -391,3 +391,132 @@ GET http://pheonixsearch.loc/myindex
 
 `ignore_above` means no restriction on string(text) length is applied, `whitespace` type is the default type 
 of inverted index analyzer which just breaks text by whitespace tokens.
+
+### Performance
+
+#### Full-text search with offset/limit + highlighting (by phrase)
+
+Request:
+```json
+{   
+    "offset":5, 
+    "limit":10, 
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "name" : {}, "text" : {}
+        }
+    },
+    "query" : {
+        "term" : { "text" : "quis enim" }
+    }
+}
+
+```
+
+Response:
+```json
+{
+    "took": 57,
+    "timed_out": false,
+    "hits": {
+        "total": 10 ...
+```
+
+#### Full-text search with offset/limit (by phrase)
+
+Request:
+```json
+{   
+    "offset":5, 
+    "limit":10, 
+    "query" : {
+        "term" : { "text" : "quis enim" }
+    }
+}
+```
+
+Response:
+```json
+{
+    "took": 34,
+    "timed_out": false,
+    "hits": {
+        "total": 10 ...
+```
+
+#### Full-text search without restriction for 1 000 000 documents by phrase
+
+Request:
+```json
+{   
+    "query" : {
+        "term" : { "text" : "quis enim" }
+    }
+}
+```
+
+Response:
+```json
+{
+    "took": 72,
+    "timed_out": false,
+    "hits": {
+        "total": 229 ...
+```
+
+#### Full-text search without restriction for 1 000 000 documents by word
+
+Request:
+```json
+{   
+    "query" : {
+        "term" : { "text" : "quis" }
+    }
+}
+```
+
+Response:
+```json
+{
+    "took": 49,
+    "timed_out": false,
+    "hits": {
+        "total": 2450 ...
+```
+
+As You can see selection is blazingly fast, no magic - just Redis with native C as core.
+
+#### Put a document into the index with type
+
+Request:
+```json
+{
+  "title": "Lorem ipsum is a pseudo-Latin text used in web design",
+  "text": "Lorem ipsum is a pseudo-Latin text used in web design, typography, layout, and printing in place of English to emphasise design elements over content. It's also called placeholder (or filler) text. It's a convenient tool for mock-ups. It helps to outline the visual elements of a document or presentation, eg typography, font, or layout. Lorem ipsum is mostly a part of a Latin text by the classical author and philosopher Cicero. Its words and letters have been changed by addition or removal, so to deliberately render its content nonsensical; it's not genuine, correct, or comprehensible Latin anymore. While lorem ipsum's still resembles classical Latin, it actually has no meaning whatsoever. As Cicero's text doesn't contain the letters K, W, or Z, alien to latin, these, and others are often inserted randomly to mimic the typographic appearence of European languages, as are digraphs not to be found in the original.",
+  "data": "2017-08-21"
+}
+```
+
+Response:
+```json
+{
+    "created": true,
+    "took": 66 ...
+}
+```
+
+#### Deleting document 
+
+Request:
+```json
+http://pheonixsearch.loc/myindex/myindextype/44972?pretty
+```
+
+Response:
+```json
+{
+    "found": true,
+    "took": 33 ...
+```
