@@ -1,6 +1,7 @@
 <?php
 namespace pheonixsearch\helpers;
 
+use pheonixsearch\core\Environment;
 use pheonixsearch\core\StdFields;
 use pheonixsearch\types\IndexInterface;
 
@@ -53,11 +54,13 @@ class Output
 
     public static function out(array $response, StdFields $stdFields): void
     {
-        header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
-        header("Pragma: no-cache"); // HTTP 1.0.
-        header("Expires: 0"); // Proxies.
-        header('Content-Type: application/json');
-        echo Json::encode($response, $stdFields->getOpts());
-        exit(0);
+        if (Environment::getEnv('APP_MODE') !== 'testing') {
+            header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+            header("Pragma: no-cache"); // HTTP 1.0.
+            header("Expires: 0"); // Proxies.
+            header('Content-Type: application/json');
+            echo Json::encode($response, $stdFields->getOpts());
+            exit(0);
+        }
     }
 }
