@@ -1,5 +1,6 @@
 <?php
 
+use pheonixsearch\core\CatIndices;
 use pheonixsearch\core\Delete;
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
@@ -106,7 +107,37 @@ class SearchTest extends TestCase
         $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
     }
 
-//    public function testInfo()
-//    {
-//    }
+    public function testInfo()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $routePath                 = '/_cat/indices';
+        $routeQuery                = 'pretty';
+        $_SERVER['REQUEST_URI']    = $routePath . '?' . $routeQuery;
+        $this->requestHandler      = new RequestHandler();
+        $this->requestHandler->setRoutePath($routePath);
+        $this->requestHandler->setRouteQuery($routeQuery);
+        $this->requestHandler->setRequestMethod($_SERVER['REQUEST_METHOD']);
+        $info = new CatIndices($this->requestHandler);
+        $info->getCat();
+        $this->assertEquals($_SERVER['REQUEST_METHOD'], $this->requestHandler->getRequestMethod());
+        $this->assertEquals($routePath, $this->requestHandler->getRoutePath());
+        $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
+    }
+
+    public function testIndexInfo()
+    {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $routePath                 = '/myindex';
+        $routeQuery                = 'pretty';
+        $_SERVER['REQUEST_URI']    = $routePath . '?' . $routeQuery;
+        $this->requestHandler      = new RequestHandler();
+        $this->requestHandler->setRoutePath($routePath);
+        $this->requestHandler->setRouteQuery($routeQuery);
+        $this->requestHandler->setRequestMethod($_SERVER['REQUEST_METHOD']);
+        $info = new CatIndices($this->requestHandler);
+        $info->getCatIndex();
+        $this->assertEquals($_SERVER['REQUEST_METHOD'], $this->requestHandler->getRequestMethod());
+        $this->assertEquals($routePath, $this->requestHandler->getRoutePath());
+        $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
+    }
 }
