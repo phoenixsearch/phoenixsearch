@@ -28,44 +28,46 @@ class RequestHandler
 
     public function __construct()
     {
-        $this->setRequestMethod($_SERVER['REQUEST_METHOD']);
-        $this->setRequestBodyJson(Request::getJsonString());
-        if (empty($this->requestBodyJson) && in_array($this->requestMethod,
-                [HttpBase::HTTP_METHOD_GET, HttpBase::HTTP_METHOD_DELETE]) === false
-        ) {
-            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY],
-                Errors::REQUEST_BODY_IS_EMPTY);
+        if (Environment::getEnv('APP_MODE') !== 'testing') {
+            $this->setRequestMethod($_SERVER['REQUEST_METHOD']);
+            $this->setRequestBodyJson(Request::getJsonString());
+            if (empty($this->requestBodyJson) && in_array($this->requestMethod,
+                    [HttpBase::HTTP_METHOD_GET, HttpBase::HTTP_METHOD_DELETE]) === false
+            ) {
+                throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_BODY_IS_EMPTY],
+                    Errors::REQUEST_BODY_IS_EMPTY);
+            }
+            if (empty($this->requestBodyJson) === false
+                && $this->requestMethod !== HttpBase::HTTP_METHOD_DELETE
+            ) {
+                $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
+            }
+            if ($this->requestMethod === HttpBase::HTTP_METHOD_GET
+                || $this->requestMethod === HttpBase::HTTP_METHOD_POST
+            ) {
+                if (empty($this->requestBodyArray[IndexInterface::OFFSET]) === false) {
+                    $this->setOffset($this->requestBodyArray[IndexInterface::OFFSET]);
+                }
+                if (empty($this->requestBodyArray[IndexInterface::LIMIT]) === false) {
+                    $this->setLimit($this->requestBodyArray[IndexInterface::LIMIT]);
+                }
+                if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT]) === false) {
+                    $this->setHighlight(true);
+                }
+                if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]) === false) {
+                    $this->setHighlightFields($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]);
+                }
+                if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]) === false) {
+                    $this->setPreTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]));
+                }
+                if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]) === false) {
+                    $this->setPostTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]));
+                }
+            }
+            $parsedUri = parse_url($_SERVER['REQUEST_URI']);
+            $this->setRoutePath(empty($parsedUri[EntryInterface::URI_PATH]) ? null : $parsedUri[EntryInterface::URI_PATH]);
+            $this->setRouteQuery(empty($parsedUri[EntryInterface::URI_QUERY]) ? null : $parsedUri[EntryInterface::URI_QUERY]);
         }
-        if (empty($this->requestBodyJson) === false
-            && $this->requestMethod !== HttpBase::HTTP_METHOD_DELETE
-        ) {
-            $this->setRequestBodyArray(Request::getJsonBody($this->requestBodyJson));
-        }
-        if ($this->requestMethod === HttpBase::HTTP_METHOD_GET
-            || $this->requestMethod === HttpBase::HTTP_METHOD_POST
-        ) {
-            if (empty($this->requestBodyArray[IndexInterface::OFFSET]) === false) {
-                $this->setOffset($this->requestBodyArray[IndexInterface::OFFSET]);
-            }
-            if (empty($this->requestBodyArray[IndexInterface::LIMIT]) === false) {
-                $this->setLimit($this->requestBodyArray[IndexInterface::LIMIT]);
-            }
-            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT]) === false) {
-                $this->setHighlight(true);
-            }
-            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]) === false) {
-                $this->setHighlightFields($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::FIELDS]);
-            }
-            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]) === false) {
-                $this->setPreTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::PRE_TAGS]));
-            }
-            if (empty($this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]) === false) {
-                $this->setPostTags(implode('', $this->requestBodyArray[IndexInterface::HIGHLIGHT][IndexInterface::POST_TAGS]));
-            }
-        }
-        $parsedUri = parse_url($_SERVER['REQUEST_URI']);
-        $this->setRoutePath(empty($parsedUri[EntryInterface::URI_PATH]) ? null : $parsedUri[EntryInterface::URI_PATH]);
-        $this->setRouteQuery(empty($parsedUri[EntryInterface::URI_QUERY]) ? null : $parsedUri[EntryInterface::URI_QUERY]);
     }
 
     /**

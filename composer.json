@@ -15,6 +15,7 @@
   },
   "require-dev": {
     "mockery/mockery": "^0.9.7",
-    "phpunit/phpunit": "^6.3"
+    "phpunit/phpunit": "^6.3",
+    "codeception/aspect-mock": "^2.0"
   }
 }
