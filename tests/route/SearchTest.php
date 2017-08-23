@@ -81,6 +81,13 @@ class SearchTest extends TestCase
 }';
         $this->requestHandler->setRequestBodyJson($json);
         $this->requestHandler->setRequestBodyArray(json_decode($json, true));
+        $this->requestHandler->setPreTags('<tag1><tag2>');
+        $this->requestHandler->setPostTags('</tag1></tag2>');
+        $this->requestHandler->setHighlight(true);
+        $this->requestHandler->setHighlightFields([
+            'name' => [],
+            'text' => [],
+        ]);
         $search = new Search($this->requestHandler);
         $search->performSearch();
         $this->assertEquals($_SERVER['REQUEST_METHOD'], $this->requestHandler->getRequestMethod());
