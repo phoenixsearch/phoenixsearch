@@ -45,9 +45,11 @@ class SearchTest extends TestCase
         $this->assertEquals($_SERVER['REQUEST_METHOD'], $this->requestHandler->getRequestMethod());
         $this->assertEquals($routePath, $this->requestHandler->getRoutePath());
         $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
+        return $this->docId;
     }
 
     /**
+     * @depends testUpdate
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
@@ -98,10 +100,14 @@ class SearchTest extends TestCase
         $this->assertNotTrue($this->requestHandler->isHighlight());
     }
 
-    public function testDelete()
+    /**
+     * @depends testUpdate
+     * @param int $id
+     */
+    public function testDelete(int $id)
     {
         $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $routePath                 = '/myindex/myindextype/' . $this->docId;
+        $routePath                 = '/myindex/myindextype/' . $id;
         $routeQuery                = 'pretty';
         $_SERVER['REQUEST_URI']    = $routePath . '?' . $routeQuery;
         $this->requestHandler      = new RequestHandler();
@@ -110,6 +116,7 @@ class SearchTest extends TestCase
         $this->requestHandler->setRequestMethod($_SERVER['REQUEST_METHOD']);
         $index = new Delete($this->requestHandler);
         $index->delete();
+        $this->assertEquals('deleted', $index->getStdFields()->getResult());
         $this->assertEquals($_SERVER['REQUEST_METHOD'], $this->requestHandler->getRequestMethod());
         $this->assertEquals($routePath, $this->requestHandler->getRoutePath());
         $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
