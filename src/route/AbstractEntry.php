@@ -7,6 +7,7 @@ use pheonixsearch\core\Delete;
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\Search;
+use pheonixsearch\helpers\Request;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
 use pheonixsearch\types\IndexInterface;
@@ -41,17 +42,25 @@ abstract class AbstractEntry implements EntryInterface
     public function getIndexMethod(string $httpMethod)
     {
         $routeEntities = $this->requestHandler->getRoutePathEntities();
-        if (empty($routeEntities[1]) === false
+        if ($httpMethod === HttpBase::HTTP_METHOD_GET
+            && empty($routeEntities[1]) === false
             && empty($routeEntities[2]) === false
             && $routeEntities[1] === IndexInterface::CAT
             && $routeEntities[2] === IndexInterface::INDICES
         ) { // info method call
             return HttpBase::HTTP_INFO_METHOD;
         }
-        if (empty($routeEntities[1]) === false && empty($routeEntities[2])
+        if ($httpMethod === HttpBase::HTTP_METHOD_GET
+            && empty($routeEntities[1]) === false
+            && empty($routeEntities[2])
             && empty($this->requestHandler->getRequestBodyArray())
         ) { // index info call - we got only GET and index route
             return HttpBase::HTTP_INDEX_INFO_METHOD;
+        }
+        if ($httpMethod === HttpBase::HTTP_METHOD_DELETE
+            && empty($routeEntities[1]) === false
+            && empty($routeEntities[3])) { // id is empty - delete all index data
+            return HttpBase::HTTP_DELETE_INDEX_METHOD;
         }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
@@ -75,7 +84,7 @@ abstract class AbstractEntry implements EntryInterface
     }
 
     /**
-     *
+     * Searches for documents by word or phrase
      */
     protected function search()
     {
@@ -84,7 +93,7 @@ abstract class AbstractEntry implements EntryInterface
     }
 
     /**
-     *
+     * Inserts or updates document
      */
     protected function update()
     {
@@ -93,11 +102,20 @@ abstract class AbstractEntry implements EntryInterface
     }
 
     /**
-     *
+     * Deletes document by id
      */
     protected function delete()
     {
         $delete = new Delete($this->requestHandler);
         $delete->delete();
+    }
+
+    /**
+     *  Deletes all entities for particular index
+     */
+    protected function deleteIndex()
+    {
+        $delete = new Delete($this->requestHandler);
+        $delete->deleteIndex();
     }
 }

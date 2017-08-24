@@ -188,6 +188,24 @@ class Core extends BaseCore
     }
 
     /**
+     *  Deletes all documents and related data in index:indexType or just index
+     */
+    protected function clearIndex()
+    {
+        $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+        $matches = $this->redisConn->hgetall($incrMatch);
+        if (empty($matches)) {
+            throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_INDEX_NOT_FOUND], Errors::REQUEST_INDEX_NOT_FOUND);
+        }
+        foreach ($matches as $k => $v) {
+            if (true === is_numeric($k)) { // id detected - not doc hash that mapped to id
+                $this->id = $k;
+                $this->deleteDocument();
+            }
+        }
+    }
+
+    /**
      * Finds documents by phrase match
      *
      * @param array  $docs   an array of index => document
