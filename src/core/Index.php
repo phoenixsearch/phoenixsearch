@@ -39,6 +39,11 @@ class Index extends Core
         Output::jsonIndex($stdFields);
     }
 
+    public function transfer()
+    {
+
+    }
+
     /**
      *  Inserts data into inverted index pre-building property fields
      */

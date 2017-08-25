@@ -19,7 +19,6 @@ class SearchTest extends TestCase
         putenv('REDIS_PORT=6379');
         putenv('REDIS_CLUSTER=false');
         putenv('REDIS_REPLICATION=false');
-        putenv('APP_MODE=testing');
     }
 
     public function testUpdate()

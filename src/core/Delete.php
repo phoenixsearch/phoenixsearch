@@ -24,11 +24,11 @@ class Delete extends Core
     /**
      * Deletes document by id
      */
-    public function delete()
+    public function delete(): void
     {
         $tStart = Timers::millitime();
         $this->deleteDocument();
-        $took = Timers::millitime() - $tStart;
+        $took      = Timers::millitime() - $tStart;
         $stdFields = $this->getStdFields();
         $stdFields->setTook($took);
         Output::jsonIndex($stdFields);
@@ -37,12 +37,17 @@ class Delete extends Core
     /**
      *  Deletes all entities for particular index
      */
-    public function deleteIndex()
+    public function deleteIndex(): void
     {
-        $tStart = Timers::millitime();
+        exec('nohup /usr/bin/php -f ./src/commands/deleteIndex.php ' . $this->getStdFields()->getIndex()
+            . ' ' . $this->getStdFields()->getType() . ' > /dev/null 2>&1 &');
+        Output::out([
+            'acknowledged' => true,
+        ], $this->getStdFields());
+    }
+
+    public function clearAllIndexData(): void
+    {
         $this->clearIndex();
-        $took = Timers::millitime() - $tStart;
-        $stdFields = $this->getStdFields();
-        $stdFields->setTook($took);
     }
 }

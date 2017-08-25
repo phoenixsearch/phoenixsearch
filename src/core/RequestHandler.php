@@ -6,6 +6,7 @@ use pheonixsearch\exceptions\RequestException;
 use pheonixsearch\helpers\Request;
 use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\EntryInterface;
+use pheonixsearch\types\EnvInterface;
 use pheonixsearch\types\Errors;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\IndexInterface;
@@ -26,9 +27,14 @@ class RequestHandler
     private $postTags        = '';
     private $highlightFields = [];
 
+    /**
+     * RequestHandler constructor.
+     * @throws RequestException
+     */
     public function __construct()
     {
-        if (Environment::getEnv('APP_MODE') !== 'testing') {
+        // we need those pre-sets only for web mode neither for testing nor commands
+        if (Environment::getEnv('APP_MODE') === EnvInterface::APP_MODE_WEB) {
             $this->setRequestMethod($_SERVER['REQUEST_METHOD']);
             $this->setRequestBodyJson(Request::getJsonString());
             if (empty($this->requestBodyJson) && in_array($this->requestMethod,

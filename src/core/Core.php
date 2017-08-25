@@ -189,6 +189,7 @@ class Core extends BaseCore
 
     /**
      *  Deletes all documents and related data in index:indexType or just index
+     * @throws RequestException
      */
     protected function clearIndex()
     {
