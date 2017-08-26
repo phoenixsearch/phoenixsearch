@@ -2,58 +2,62 @@
 
 namespace pheonixsearch\core;
 
+use pheonixsearch\helpers\DaemonOutput;
 use pheonixsearch\types\DaemonInterface;
 
-declare(ticks=1);
+declare(ticks = 1);
 
 class Daemon implements DaemonInterface
 {
     private $stopServer = false;
 
-    public function run()
+    public function run(string $pName)
     {
         if ($this->isDaemonActive(self::PID_FILE)) {
-            echo 'Daemon is already active';
+            echo 'Daemon is already active' . PHP_EOL;
             exit(1);
         }
 
-        // создаем дочерний процесс
+        // create process
         $child_pid = pcntl_fork();
         if ($child_pid > 0) {
-            // выходим из родительского, привязанного к консоли, процесса
+            // exit from parent process attached to console
             exit(0);
         }
         posix_setsid();
         file_put_contents(self::PID_FILE, getmypid());
-        pcntl_signal(SIGTERM, "childSignalled");
-
+        // todo: signals handler
+        // give a title to a process
+        cli_set_process_title($pName);
         $childProcess = [];
         while (false === $this->stopServer) {
             if (false === $this->stopServer && (count($childProcess) < self::MAX_CHILD_PROCESSES)) {
                 $pid = pcntl_fork();
                 if ($pid == -1) {
-                    //TODO: ошибка - не смогли создать процесс
-
+                    echo 'Process can\'t be created' . PHP_EOL;
+                    exit(1);
                 } elseif ($pid) {
-                    //процесс создан
+                    // process successfully created
                     $childProcess[$pid] = true;
                 } else {
+                    // todo: execute job
                     $pid = getmypid();
-                    //TODO: дочерний процесс - тут рабочая нагрузка
-                    exit;
+                    DaemonOutput::print($pid, 'running task');
+                    exit(0);
                 }
             } else {
-                //чтоб не гонять цикл вхолостую
+                // to prevent running idle
                 sleep(self::DELAY);
             }
-            //проверяем, умер ли один из детей
-            while ($signaled_pid = pcntl_waitpid(-1, $status, WNOHANG)) {
-                if ($signaled_pid == -1) {
-                    //детей не осталось
+            // check if some child is dead
+            while ($signaledPid = pcntl_waitpid(-1, $status, WNOHANG)) {
+                if ($signaledPid == -1) {
+                    // there are no children
                     $childProcess = [];
                     break;
                 } else {
-                    unset($childProcess[$signaled_pid]);
+                    // exit process
+                    unset($childProcess[$signaledPid]);
                 }
             }
         }
@@ -63,36 +67,18 @@ class Daemon implements DaemonInterface
     {
         if (is_file($pidFile)) {
             $pid = file_get_contents($pidFile);
-            //проверяем на наличие процесса
+            // check for process existence
             if (posix_kill($pid, 0)) {
-                //демон уже запущен
+                // daemon already started
                 return true;
             } else {
-                //pid-файл есть, но процесса нет
-                if (!unlink($pidFile)) {
-                    //не могу уничтожить pid-файл. ошибка
+                // pid file is present, but there is no process
+                if (false === unlink($pidFile)) {
+                    // can't delete pid-file - error
                     exit(-1);
                 }
             }
         }
         return false;
-    }
-
-    public function sigHandler($sigNum)
-    {
-        switch ($sigNum) {
-            case SIGTERM: {
-                $this->stopServer = true;
-                break;
-            }
-            default: {
-                //все остальные сигналы
-            }
-        }
-    }
-
-    private function childSignalled(int $sigNum)
-    {
-        $this->sigHandler($sigNum);
     }
 }
