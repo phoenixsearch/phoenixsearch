@@ -12,7 +12,7 @@ if ($argc > 1) {
     if ((string)$key === (string)$envKey) {
         // opts with auth
         $daemon = new \pheonixsearch\core\Daemon();
-        $daemon->run('phoenixsearch');
+        $daemon->run(\pheonixsearch\types\CoreInterface::PROCESS_TITLE);
     }
 } else {
     Console::out('Usage: php install.php <key>', Console::COLOR_YELLOW);

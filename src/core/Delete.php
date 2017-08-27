@@ -5,6 +5,9 @@ namespace pheonixsearch\core;
 
 use pheonixsearch\helpers\Output;
 use pheonixsearch\helpers\Timers;
+use pheonixsearch\types\CoreInterface;
+use pheonixsearch\types\DaemonInterface;
+use pheonixsearch\types\IndexInterface;
 
 class Delete extends Core
 {
@@ -39,8 +42,12 @@ class Delete extends Core
      */
     public function deleteIndex(): void
     {
-        exec('nohup /usr/bin/php -f ./src/commands/deleteIndex.php ' . $this->getStdFields()->getIndex()
-            . ' ' . $this->getStdFields()->getType() . ' > /dev/null 2>&1 &');
+        $msgKey = ftok(DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
+        $seg    = msg_get_queue($msgKey);
+        msg_send($seg, CoreInterface::MSG_TYPE_DELETE_INDEX, [
+            IndexInterface::INDEX => $this->getStdFields()->getIndex(),
+            IndexInterface::TYPE  => $this->getStdFields()->getType(),
+        ]);
         Output::out([
             'acknowledged' => true,
         ], $this->getStdFields());

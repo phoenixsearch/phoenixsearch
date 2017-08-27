@@ -191,7 +191,7 @@ class Core extends BaseCore
      *  Deletes all documents and related data in index:indexType or just index
      * @throws RequestException
      */
-    protected function clearIndex()
+    protected function clearIndex(): void
     {
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         $matches = $this->redisConn->hgetall($incrMatch);

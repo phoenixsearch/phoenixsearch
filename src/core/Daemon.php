@@ -3,15 +3,17 @@
 namespace pheonixsearch\core;
 
 use pheonixsearch\helpers\DaemonOutput;
+use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\DaemonInterface;
+use pheonixsearch\types\IndexInterface;
 
-declare(ticks = 1);
+declare(ticks=1);
 
 class Daemon implements DaemonInterface
 {
     private $stopServer = false;
 
-    public function run(string $pName)
+    public function run(string $pTitle)
     {
         if ($this->isDaemonActive(self::PID_FILE)) {
             echo 'Daemon is already active' . PHP_EOL;
@@ -19,8 +21,8 @@ class Daemon implements DaemonInterface
         }
 
         // create process
-        $child_pid = pcntl_fork();
-        if ($child_pid > 0) {
+        $childPid = pcntl_fork();
+        if ($childPid > 0) {
             // exit from parent process attached to console
             exit(0);
         }
@@ -28,7 +30,7 @@ class Daemon implements DaemonInterface
         file_put_contents(self::PID_FILE, getmypid());
         // todo: signals handler
         // give a title to a process
-        cli_set_process_title($pName);
+        cli_set_process_title($pTitle);
         $childProcess = [];
         while (false === $this->stopServer) {
             if (false === $this->stopServer && (count($childProcess) < self::MAX_CHILD_PROCESSES)) {
@@ -40,9 +42,27 @@ class Daemon implements DaemonInterface
                     // process successfully created
                     $childProcess[$pid] = true;
                 } else {
-                    // todo: execute job
-                    $pid = getmypid();
-                    DaemonOutput::print($pid, 'running task');
+                    $ipcKey = ftok(self::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
+                    $queue  = msg_get_queue($ipcKey);
+                    $stat   = msg_stat_queue($queue);
+                    if ($stat['msg_qnum'] > 0 && true === msg_receive($queue, 0,
+                            $msgType, self::MAX_MESSAGE_SIZE, $msg)
+                    ) {
+                        $pid = getmypid();
+                        DaemonOutput::print($pid, 'running task type: ' . $msgType . ' ...');
+                        if ($msgType === CoreInterface::MSG_TYPE_DELETE_INDEX) {
+                            \pheonixsearch\core\Environment::setEnvironment();
+                            putenv('APP_MODE=command');
+                            $handler = new \pheonixsearch\core\RequestHandler();
+                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_DELETE);
+                            $index = '/' . $msg[IndexInterface::INDEX];
+                            $type  = empty($msg[IndexInterface::TYPE]) ? '' : '/' . $msg[IndexInterface::TYPE] . '/';
+                            $handler->setRoutePath($index . $type);
+                            $del = new \pheonixsearch\core\Delete($handler);
+                            $del->clearAllIndexData();
+                        }
+                        DaemonOutput::print($pid, 'task type: ' . $msgType . ' successfully executed.');
+                    }
                     exit(0);
                 }
             } else {

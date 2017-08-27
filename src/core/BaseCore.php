@@ -47,6 +47,7 @@ class BaseCore implements CoreInterface
         $this->requestHandler = $handler;
         $this->redisConn      = RedisConnector::getInstance();
         $this->routePath      = $handler->getRoutePath();
+        print_r($this->routePath);
         $this->routeQuery     = $handler->getRouteQuery();
         // parse index/type from path
         $pathArray = explode('/', $this->routePath);
