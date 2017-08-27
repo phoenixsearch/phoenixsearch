@@ -10,6 +10,7 @@ use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\Errors;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\IndexInterface;
+use pheonixsearch\types\InfoInterface;
 
 class Core extends BaseCore
 {
@@ -204,6 +205,14 @@ class Core extends BaseCore
                 $this->deleteDocument();
             }
         }
+        // delete artifacts like info, structure of index
+        $this->redisConn->hdel(InfoInterface::INFO_INDICES, [$this->index]);
+        $this->redisConn->hdel($this->index, [IndexInterface::STRUCTURE]);
+        // deleting increments for documents & words
+        $this->redisConn->del([
+            $this->hashIndexKey,
+            $this->listIndexKey,
+        ]);
     }
 
     /**

@@ -15,5 +15,5 @@ if ($argc > 1) {
         $daemon->run(\pheonixsearch\types\CoreInterface::PROCESS_TITLE);
     }
 } else {
-    Console::out('Usage: php install.php <key>', Console::COLOR_YELLOW);
+    Console::out('Usage: php phoenixsearchd.php <key>', Console::COLOR_YELLOW);
 }

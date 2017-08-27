@@ -47,7 +47,6 @@ class BaseCore implements CoreInterface
         $this->requestHandler = $handler;
         $this->redisConn      = RedisConnector::getInstance();
         $this->routePath      = $handler->getRoutePath();
-        print_r($this->routePath);
         $this->routeQuery     = $handler->getRouteQuery();
         // parse index/type from path
         $pathArray = explode('/', $this->routePath);
@@ -153,7 +152,7 @@ class BaseCore implements CoreInterface
         $data = (null === $got) ? [] : $this->unser($got);
         if (empty($data)) { // just fill-in new index data
             $data[$this->index] = [
-                IndexInterface::ALIASES  => [],
+                IndexInterface::ALIASES => [],
             ];
             $this->setMappings($data);
             $this->redisConn->hset($this->index, IndexInterface::STRUCTURE, $this->ser($data));
