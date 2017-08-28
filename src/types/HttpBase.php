@@ -17,4 +17,5 @@ class HttpBase
     const HTTP_INFO_METHOD         = 'info';
     const HTTP_INDEX_INFO_METHOD   = 'indexInfo';
     const HTTP_DELETE_INDEX_METHOD = 'deleteIndex';
+    const HTTP_REINDEX_METHOD      = 'reindex';
 }

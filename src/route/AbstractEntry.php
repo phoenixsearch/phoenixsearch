@@ -67,6 +67,7 @@ abstract class AbstractEntry implements EntryInterface
             && empty($this->requestHandler->getRequestBodyArray()) === false
             && empty($routeEntities[1]) && $routeEntities[1] === IndexInterface::REINDEX) {
             // todo: reindex impl here
+            return HttpBase::HTTP_REINDEX_METHOD;
         }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }
@@ -123,5 +124,11 @@ abstract class AbstractEntry implements EntryInterface
     {
         $delete = new Delete($this->requestHandler);
         $delete->deleteIndex();
+    }
+
+    protected function reindex()
+    {
+        $index = new Index($this->requestHandler);
+        $index->reindex();
     }
 }
