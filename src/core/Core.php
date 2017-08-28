@@ -190,29 +190,44 @@ class Core extends BaseCore
 
     /**
      *  Deletes all documents and related data in index:indexType or just index
+     *
      * @throws RequestException
      */
     protected function clearIndex(): void
     {
         $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
-        $matches = $this->redisConn->hgetall($incrMatch);
+        $matches   = $this->redisConn->hgetall($incrMatch);
         if (empty($matches)) {
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_INDEX_NOT_FOUND], Errors::REQUEST_INDEX_NOT_FOUND);
         }
         foreach ($matches as $k => $v) {
-            if (true === is_numeric($k)) { // id detected - not doc hash that mapped to id
-                $this->id = $k;
-                $this->deleteDocument();
-            }
+            $this->id = $k;
+            $this->deleteDocument();
         }
         // delete artifacts like info, structure of index
         $this->redisConn->hdel(InfoInterface::INFO_INDICES, [$this->index]);
         $this->redisConn->hdel($this->index, [IndexInterface::STRUCTURE]);
         // deleting increments for documents & words
-        $this->redisConn->del([
-            $this->hashIndexKey,
-            $this->listIndexKey,
-        ]);
+        $this->redisConn->del(
+            [
+                $this->hashIndexKey,
+                $this->listIndexKey,
+            ]
+        );
+    }
+
+    protected function reindexDocuments()
+    {
+        $requestBody     = $this->requestHandler->getRequestBodyArray();
+        $this->index     = $requestBody[IndexInterface::DATA_SOURCE][IndexInterface::DATA_INDEX];
+        $this->indexType = empty($requestBody[IndexInterface::DATA_SOURCE][IndexInterface::DATA_INDEX_TYPE]) ? '' :
+            $requestBody[IndexInterface::DATA_SOURCE][IndexInterface::DATA_INDEX_TYPE];
+        $this->setHashIndexKey();
+        $this->setListIndexKey();
+        $this->setIncrKey();
+        $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+        $matches   = $this->redisConn->hgetall($incrMatch);
+
     }
 
     /**

@@ -23,13 +23,17 @@ interface IndexInterface
     const PRE_TAGS  = 'pre_tags';
     const POST_TAGS = 'post_tags';
     // canonical values
-    const FIELDS       = 'fields';
-    const PROPERTIES   = 'properties';
-    const STRUCTURE    = 'structure';
-    const ALIASES      = 'aliases';
-    const MAPPINGS     = 'mappings';
-    const FIELD_TYPE   = 'type';
-    const IGNORE_ABOVE = 'ignore_above';
+    const FIELDS          = 'fields';
+    const PROPERTIES      = 'properties';
+    const STRUCTURE       = 'structure';
+    const ALIASES         = 'aliases';
+    const MAPPINGS        = 'mappings';
+    const FIELD_TYPE      = 'type';
+    const IGNORE_ABOVE    = 'ignore_above';
+    const DATA_SOURCE     = 'source';
+    const DATA_DEST       = 'dest';
+    const DATA_INDEX      = 'index';
+    const DATA_INDEX_TYPE = 'index_type';
 
     // response - StdFields
     const TOOK      = 'took';

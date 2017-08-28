@@ -7,7 +7,6 @@ use pheonixsearch\core\Delete;
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
 use pheonixsearch\core\Search;
-use pheonixsearch\helpers\Request;
 use pheonixsearch\types\HttpBase;
 use pheonixsearch\types\EntryInterface;
 use pheonixsearch\types\IndexInterface;
@@ -65,8 +64,7 @@ abstract class AbstractEntry implements EntryInterface
         }
         if ($httpMethod === HttpBase::HTTP_METHOD_POST
             && empty($this->requestHandler->getRequestBodyArray()) === false
-            && empty($routeEntities[1]) && $routeEntities[1] === IndexInterface::REINDEX) {
-            // todo: reindex impl here
+            && empty($routeEntities[1]) === false && $routeEntities[1] === IndexInterface::REINDEX) {
             return HttpBase::HTTP_REINDEX_METHOD;
         }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];

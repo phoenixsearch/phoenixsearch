@@ -41,7 +41,7 @@ class Index extends Core
 
     public function reindex()
     {
-
+        $this->reindexDocuments();
     }
 
     /**
