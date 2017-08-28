@@ -28,6 +28,6 @@ interface CoreInterface
     const PROCESS_TITLE     = 'phoenixsearch';
     const FTOK_PROJECT_NAME = 'P';
     // System V IPC message types
-    const MSG_TYPE_DELETE_INDEX   = 1;
-    const MSG_TYPE_TRANSFER_INDEX = 2;
+    const MSG_TYPE_DELETE_INDEX  = 1;
+    const MSG_TYPE_REINDEX_INDEX = 2;
 }

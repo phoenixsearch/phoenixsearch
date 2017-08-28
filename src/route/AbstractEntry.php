@@ -47,7 +47,7 @@ abstract class AbstractEntry implements EntryInterface
             && empty($routeEntities[2]) === false
             && $routeEntities[1] === IndexInterface::CAT
             && $routeEntities[2] === IndexInterface::INDICES
-        ) { // info method call
+        ) { // common info method call
             return HttpBase::HTTP_INFO_METHOD;
         }
         if ($httpMethod === HttpBase::HTTP_METHOD_GET
@@ -59,8 +59,14 @@ abstract class AbstractEntry implements EntryInterface
         }
         if ($httpMethod === HttpBase::HTTP_METHOD_DELETE
             && empty($routeEntities[1]) === false
-            && empty($routeEntities[3])) { // id is empty - delete all index data
+            && empty($routeEntities[3])
+        ) { // id is empty - delete all index data
             return HttpBase::HTTP_DELETE_INDEX_METHOD;
+        }
+        if ($httpMethod === HttpBase::HTTP_METHOD_POST
+            && empty($this->requestHandler->getRequestBodyArray()) === false
+            && empty($routeEntities[1]) && $routeEntities[1] === IndexInterface::REINDEX) {
+            // todo: reindex impl here
         }
         return empty($this->requestMethodMap[$httpMethod]) ? false : $this->requestMethodMap[$httpMethod];
     }

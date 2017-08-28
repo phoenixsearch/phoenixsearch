@@ -39,7 +39,7 @@ class Index extends Core
         Output::jsonIndex($stdFields);
     }
 
-    public function transfer()
+    public function reindex()
     {
 
     }

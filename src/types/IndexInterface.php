@@ -48,6 +48,7 @@ interface IndexInterface
     const RESULT    = 'result';
     const DOCUMENT  = '_document';
     const CAT       = '_cat';
+    const REINDEX   = '_reindex';
 
     // op results
     const RESULT_DELETED   = 'deleted';
