@@ -226,19 +226,20 @@ class Core extends BaseCore
         $this->setListIndexKey();
         $this->setIncrKey();
         $incrMatch     = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
-        $destIndex = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX];
+        $destIndex     = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX];
         $destIndexType = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE];
-        $destIncrMatch = $destIndex . (empty($destIndexType) ? '' : (self::HASH_INDEX_GLUE . $destIndexType . ''));
+        $destIncrKey   = $destIndex . (empty($destIndexType) ? '' : (self::HASH_INDEX_GLUE . $destIndexType));
+        $destIncrMatch = $destIncrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         $matches       = $this->redisConn->hgetall($incrMatch);
-
         $this->resetDocuemnts($matches, $destIncrMatch, $incrMatch);
         $destListKey = $destIndex . (empty($destIndexType)
                 ? self::LIST_INDEX_GLUE : (self::LIST_INDEX_GLUE . $destIndexType . self::LIST_INDEX_GLUE));
         $destHashKey = $destIndex . (empty($destIndexType)
                 ? self::HASH_INDEX_GLUE : (self::HASH_INDEX_GLUE . $destIndexType . self::HASH_INDEX_GLUE));
-        $list = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
+        $list        = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
         $this->resetListsAndHashes($list, $destListKey, $destHashKey);
         $this->resetInfo($this->index, $destIndex);
+        $this->resetDictHashData($destIncrKey);
     }
 
     /**
@@ -271,7 +272,7 @@ class Core extends BaseCore
             foreach ($range as $i => $id) { // got the mappings md5(word) => id
                 $this->redisConn->lset($destListKey, $i, $id);
                 $setKey = $this->hashIndexKey . str_replace($this->listIndexKey, '', $key);
-                $doc = $this->redisConn->hget($setKey, $id);
+                $doc    = $this->redisConn->hget($setKey, $id);
                 $this->redisConn->hset($destHashKey, $id, $doc);
             }
         }
@@ -337,12 +338,19 @@ class Core extends BaseCore
 
     protected function setDictHashData(): void
     {
-        $docSha     = sha1($this->requestSource);
-        $docShaData = $this->redisConn->hget($this->incrKey, $docSha);
-        $data       = unserialize($docShaData);
-
+        $docSha                               = sha1($this->requestSource);
+        $docShaData                           = $this->redisConn->hget($this->incrKey, $docSha);
+        $data                                 = unserialize($docShaData);
         $data[IndexInterface::LIST_WORDS_KEY] = $this->listWordKeys;
         $data[IndexInterface::HASH_WORDS_KEY] = $this->hashWordKeys;
         $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
+    }
+
+    protected function resetDictHashData(string $destIncrKey): void
+    {
+        $vals = $this->redisConn->hgetall($this->incrKey);
+        foreach ($vals as $hash => $dict) {
+            $this->redisConn->hset($destIncrKey, $hash, $dict);
+        }
     }
 }
