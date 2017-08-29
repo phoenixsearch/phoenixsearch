@@ -30,4 +30,6 @@ interface CoreInterface
     // System V IPC message types
     const MSG_TYPE_DELETE_INDEX  = 1;
     const MSG_TYPE_REINDEX_INDEX = 2;
+
+    const INDEX_HASH_PATTERN = '[a-z0-9]*';
 }

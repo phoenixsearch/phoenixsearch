@@ -225,9 +225,32 @@ class Core extends BaseCore
         $this->setHashIndexKey();
         $this->setListIndexKey();
         $this->setIncrKey();
-        $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
-        $matches   = $this->redisConn->hgetall($incrMatch);
-
+        $incrMatch     = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
+        $destIndex = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX];
+        $destIndexType = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE];
+        $destIncrMatch = $destIndex . (empty($destIndexType) ? '' : (self::HASH_INDEX_GLUE . $destIndexType . ''));
+        $matches       = $this->redisConn->hgetall($incrMatch);
+        foreach ($matches as $id => $docHash) {
+            $docHash = $this->redisConn->hget($incrMatch, $id);
+            // here we don't need to deserialize data - just save in dest
+            $docData = $this->redisConn->hget($this->incrKey, $docHash);
+            $this->redisConn->hset($destIncrMatch, $id, $docHash);
+            $this->redisConn->hset($destIncrMatch, $docHash, $docData);
+        }
+        $destListKey = $destIndex . (empty($destIndexType)
+                ? self::LIST_INDEX_GLUE : (self::LIST_INDEX_GLUE . $destIndexType . self::LIST_INDEX_GLUE));
+        $destHashKey = $destIndex . (empty($destIndexType)
+                ? self::HASH_INDEX_GLUE : (self::HASH_INDEX_GLUE . $destIndexType . self::HASH_INDEX_GLUE));
+        $list = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
+        foreach ($list as $key) {
+            $range = $this->redisConn->lrange($key, 0, -1);
+            foreach ($range as $i => $id) { // got the mappings md5(word) => id
+                $this->redisConn->lset($destListKey, $i, $id);
+                $setKey = $this->hashIndexKey . str_replace($this->listIndexKey, '', $key);
+                $doc = $this->redisConn->hget($setKey, $id);
+                $this->redisConn->hset($destHashKey, $id, $doc);
+            }
+        }
     }
 
     /**
