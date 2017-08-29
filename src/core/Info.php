@@ -19,6 +19,7 @@ trait Info
 {
     /**
      * Sets system and index info
+     *
      * @param StdFields $stdFields
      *
      * @return bool
@@ -58,7 +59,19 @@ trait Info
     }
 
     /**
+     * Reindex info
+     * @param string $fromIndex
+     * @param string $toIndex
+     */
+    public function resetInfo(string $fromIndex, string $toIndex): void
+    {
+        $data = $this->redisConn->hget(InfoInterface::INFO_INDICES, $fromIndex);
+        $this->redisConn->hset(InfoInterface::INFO_INDICES, $toIndex, $data);
+    }
+
+    /**
      * Decrement doc info on delete
+     *
      * @param StdFields $stdFields
      */
     public function decrInfo(StdFields $stdFields)
@@ -96,6 +109,7 @@ trait Info
         if (empty($indexInfo)) {
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_INDEX_NOT_FOUND], Errors::REQUEST_INDEX_NOT_FOUND);
         }
+
         return $this->unser($indexInfo);
     }
 }
