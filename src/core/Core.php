@@ -241,7 +241,7 @@ class Core extends BaseCore
         $this->resetListsAndHashes($destListKey, $destHashKey);
         $this->resetInfo($this->index, $destIndex);
         $this->resetDictHashData($destIncrKey);
-        // todo: reindex the structure with mappings
+        $this->resetCanonicalIndex($destIndex, $destIndexType);
     }
 
     /**
