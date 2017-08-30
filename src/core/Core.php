@@ -216,6 +216,9 @@ class Core extends BaseCore
         );
     }
 
+    /**
+     * Reindex all structures, documents, words, ids etc to new index/type
+     */
     protected function reindexDocuments()
     {
         $requestBody     = $this->requestHandler->getRequestBodyArray();
@@ -230,26 +233,26 @@ class Core extends BaseCore
         $destIndexType = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE];
         $destIncrKey   = $destIndex . (empty($destIndexType) ? '' : (self::HASH_INDEX_GLUE . $destIndexType));
         $destIncrMatch = $destIncrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
-        $matches       = $this->redisConn->hgetall($incrMatch);
-        $this->resetDocuemnts($matches, $destIncrMatch, $incrMatch);
+        $this->resetDocuemnts($destIncrMatch, $incrMatch);
         $destListKey = $destIndex . (empty($destIndexType)
                 ? self::LIST_INDEX_GLUE : (self::LIST_INDEX_GLUE . $destIndexType . self::LIST_INDEX_GLUE));
         $destHashKey = $destIndex . (empty($destIndexType)
                 ? self::HASH_INDEX_GLUE : (self::HASH_INDEX_GLUE . $destIndexType . self::HASH_INDEX_GLUE));
-        $list        = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
-        $this->resetListsAndHashes($list, $destListKey, $destHashKey);
+        $this->resetListsAndHashes($destListKey, $destHashKey);
         $this->resetInfo($this->index, $destIndex);
         $this->resetDictHashData($destIncrKey);
+        // todo: reindex the structure with mappings
     }
 
     /**
      * Reindex documents
-     * @param array  $matches
      * @param string $destIncrMatch
      * @param string $incrMatch
+     * @internal param array $matches
      */
-    private function resetDocuemnts(array $matches, string $destIncrMatch, string $incrMatch)
+    private function resetDocuemnts(string $destIncrMatch, string $incrMatch)
     {
+        $matches = $this->redisConn->hgetall($incrMatch);
         foreach ($matches as $id => $docHash) {
             $docHash = $this->redisConn->hget($incrMatch, $id);
             // here we don't need to deserialize data - just save in dest
@@ -261,12 +264,13 @@ class Core extends BaseCore
 
     /**
      * Reindex words -> ids -> docs
-     * @param array  $list
      * @param string $destListKey
      * @param string $destHashKey
+     * @internal param array $list
      */
-    private function resetListsAndHashes(array $list, string $destListKey, string $destHashKey)
+    private function resetListsAndHashes(string $destListKey, string $destHashKey)
     {
+        $list = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
         foreach ($list as $key) {
             $range = $this->redisConn->lrange($key, 0, -1);
             foreach ($range as $i => $id) { // got the mappings md5(word) => id

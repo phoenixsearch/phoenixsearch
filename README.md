@@ -23,6 +23,20 @@ PhoenixSearch is a fast and modern full-text real-time search engine based on Re
 composer create-project phoenixsearch/phoenixsearch yourprojectpath/
 ```
 
+then cd to yourprojectpath/ and run:
+```sh
+php phoenixsearchd.php <key>
+```
+the key is in Your `.env` file.
+
+PS you need `phoenixsearchd` to execute long running complicated tasks ex.: 
+delete an entire index, reindex data to another index/indexType etc  
+
+It is possible to identify the process by it's title: 
+```sh
+ps aux | grep phoenixsearch
+```
+
 ### Index document
 
 Request:
@@ -318,6 +332,21 @@ For non-existent document:
 }
 ```
 
+### Delete index
+
+```json
+DELETE http://pheonixsearch.loc/myindex/myindextype
+```
+
+Response:
+```json
+{
+    "acknowledged": true
+}
+```
+
+The message `"acknowledged": true` means the job is processed under the daemon `phoenixsearchd`.
+
 ### Getting indices info
 
 ```json
@@ -521,3 +550,7 @@ Response:
     "found": true,
     "took": 33 ...
 ```
+
+### Notes
+
+- `took` time measured in milliseconds

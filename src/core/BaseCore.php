@@ -170,14 +170,17 @@ class BaseCore implements CoreInterface
     }
 
     /**
-     *
-     * @param string $fromIndex
+     * Reindex structure
      * @param string $toIndex
      */
-    protected function resetCanonicalIndex(string $fromIndex, string $toIndex): void
+    protected function resetCanonicalIndex(string $toIndex, string $toIndexTYpe): void
     {
-        $got  = $this->redisConn->hget($this->index, IndexInterface::STRUCTURE);
+        $fromData  = $this->unser($this->redisConn->hget($this->index, IndexInterface::STRUCTURE));
+        if (empty($this->indexType)) {
 
+        } else {
+
+        }
     }
 
     /**
