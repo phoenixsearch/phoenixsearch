@@ -246,8 +246,10 @@ class Core extends BaseCore
 
     /**
      * Reindex documents
+     *
      * @param string $destIncrMatch
      * @param string $incrMatch
+     *
      * @internal param array $matches
      */
     private function resetDocuemnts(string $destIncrMatch, string $incrMatch)
@@ -264,8 +266,10 @@ class Core extends BaseCore
 
     /**
      * Reindex words -> ids -> docs
+     *
      * @param string $destListKey
      * @param string $destHashKey
+     *
      * @internal param array $list
      */
     private function resetListsAndHashes(string $destListKey, string $destHashKey)
@@ -274,10 +278,12 @@ class Core extends BaseCore
         foreach ($list as $key) {
             $range = $this->redisConn->lrange($key, 0, -1);
             foreach ($range as $i => $id) { // got the mappings md5(word) => id
-                $this->redisConn->lset($destListKey, $i, $id);
-                $setKey = $this->hashIndexKey . str_replace($this->listIndexKey, '', $key);
+                $wordHash = str_replace($this->listIndexKey, '', $key);
+                $listKey = $destListKey . $wordHash;
+                $this->redisConn->lpush($listKey, $id);
+                $setKey = $destHashKey . $wordHash;
                 $doc    = $this->redisConn->hget($setKey, $id);
-                $this->redisConn->hset($destHashKey, $id, $doc);
+                $this->redisConn->hset($setKey, $id, $doc);
             }
         }
     }
