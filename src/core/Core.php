@@ -280,7 +280,7 @@ class Core extends BaseCore
             foreach ($range as $i => $id) { // got the mappings md5(word) => id
                 $wordHash = str_replace($this->listIndexKey, '', $key);
                 $listKey = $destListKey . $wordHash;
-                $this->redisConn->lpush($listKey, $id);
+                $this->redisConn->lpush($listKey, [$id]);
                 $setKey = $destHashKey . $wordHash;
                 $doc    = $this->redisConn->hget($setKey, $id);
                 $this->redisConn->hset($setKey, $id, $doc);
