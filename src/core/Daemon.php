@@ -29,9 +29,10 @@ class Daemon implements DaemonInterface
         posix_setsid();
         file_put_contents(self::PID_FILE, getmypid());
         // todo: signals handler
-        // give a title to a process
-        // todo: fix setting process title for MacOS/Win by not setting it at all
-        cli_set_process_title($pTitle);
+        // give a title to a process (only for Linux, with luv)
+        if (mb_strpos(PHP_OS, CoreInterface::DAEMON_TITLE_OS) !== false) {
+            cli_set_process_title($pTitle);
+        }
         $childProcess = [];
         while (false === $this->stopServer) {
             if (false === $this->stopServer && (count($childProcess) < self::MAX_CHILD_PROCESSES)) {
@@ -42,7 +43,7 @@ class Daemon implements DaemonInterface
                 } elseif ($pid) {
                     // process successfully created
                     $childProcess[$pid] = true;
-                } else {
+                } else { // child processes
                     $ipcKey = ftok(self::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
                     $queue  = msg_get_queue($ipcKey);
                     $stat   = msg_stat_queue($queue);
@@ -52,25 +53,10 @@ class Daemon implements DaemonInterface
                         $pid = getmypid();
                         DaemonOutput::print($pid, 'running task type: ' . $msgType . ' ...');
                         if ($msgType === CoreInterface::MSG_TYPE_DELETE_INDEX) {
-                            \pheonixsearch\core\Environment::setEnvironment();
-                            putenv('APP_MODE=command');
-                            $handler = new \pheonixsearch\core\RequestHandler();
-                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_DELETE);
-                            $index = '/' . $msg[IndexInterface::INDEX];
-                            $type  = empty($msg[IndexInterface::TYPE]) ? '' : '/' . $msg[IndexInterface::TYPE] . '/';
-                            $handler->setRoutePath($index . $type);
-                            $del = new \pheonixsearch\core\Delete($handler);
-                            $del->clearAllIndexData();
+                            $this->deleteIndex($msg);
                         }
                         if ($msgType === CoreInterface::MSG_TYPE_REINDEX) {
-                            \pheonixsearch\core\Environment::setEnvironment();
-                            putenv('APP_MODE=command');
-                            $handler = new \pheonixsearch\core\RequestHandler();
-                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_POST);
-                            $reindexPath = '/' . IndexInterface::REINDEX;
-                            $handler->setRoutePath($reindexPath);
-                            $del = new \pheonixsearch\core\Index($handler);
-                            $del->reindexData($msg);
+                            $this->reindex($msg);
                         }
                         DaemonOutput::print($pid, 'task type: ' . $msgType . ' successfully executed.');
                     }
@@ -111,5 +97,30 @@ class Daemon implements DaemonInterface
             }
         }
         return false;
+    }
+
+    private function deleteIndex(array $msg)
+    {
+        \pheonixsearch\core\Environment::setEnvironment();
+        putenv('APP_MODE=command');
+        $handler = new \pheonixsearch\core\RequestHandler();
+        $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_DELETE);
+        $index = '/' . $msg[IndexInterface::INDEX];
+        $type  = empty($msg[IndexInterface::TYPE]) ? '' : '/' . $msg[IndexInterface::TYPE] . '/';
+        $handler->setRoutePath($index . $type);
+        $del = new \pheonixsearch\core\Delete($handler);
+        $del->clearAllIndexData();
+    }
+
+    private function reindex(array $msg)
+    {
+        \pheonixsearch\core\Environment::setEnvironment();
+        putenv('APP_MODE=command');
+        $handler = new \pheonixsearch\core\RequestHandler();
+        $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_POST);
+        $reindexPath = '/' . IndexInterface::REINDEX;
+        $handler->setRoutePath($reindexPath);
+        $del = new \pheonixsearch\core\Index($handler);
+        $del->reindexData($msg);
     }
 }

@@ -32,4 +32,6 @@ interface CoreInterface
     const MSG_TYPE_REINDEX      = 2;
 
     const INDEX_HASH_PATTERN = '[a-z0-9]*';
+
+    const DAEMON_TITLE_OS = 'Linux';
 }
