@@ -61,6 +61,16 @@ class Daemon implements DaemonInterface
                             $del = new \pheonixsearch\core\Delete($handler);
                             $del->clearAllIndexData();
                         }
+                        if ($msgType === CoreInterface::MSG_TYPE_REINDEX) {
+                            \pheonixsearch\core\Environment::setEnvironment();
+                            putenv('APP_MODE=command');
+                            $handler = new \pheonixsearch\core\RequestHandler();
+                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_POST;
+                            $reindexPath = '/' . IndexInterface::REINDEX;
+                            $handler->setRoutePath($reindexPath);
+                            $del = new \pheonixsearch\core\Index($handler);
+                            $del->reindexData($msg);
+                        }
                         DaemonOutput::print($pid, 'task type: ' . $msgType . ' successfully executed.');
                     }
                     exit(0);

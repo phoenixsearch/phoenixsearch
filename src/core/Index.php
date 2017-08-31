@@ -45,14 +45,15 @@ class Index extends Core
     {
         $msgKey = ftok(DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
         $seg    = msg_get_queue($msgKey);
-        // todo: implement set indices from request body
-        msg_send($seg, CoreInterface::MSG_TYPE_REINDEX, [
-            IndexInterface::INDEX => $this->getStdFields()->getIndex(),
-            IndexInterface::TYPE  => $this->getStdFields()->getType(),
-        ]);
+        msg_send($seg, CoreInterface::MSG_TYPE_REINDEX, $this->requestHandler->getRequestBodyArray());
         Output::out([
             'acknowledged' => true,
         ], $this->getStdFields());
+    }
+
+    public function reindexData(array $requestBody)
+    {
+        $this->reindexDocuments(array $requestBody);
     }
 
     /**
