@@ -96,7 +96,6 @@ class SearchTest extends TestCase
         $this->assertEquals($limit, $this->requestHandler->getLimit());
         $this->assertEquals($routePath, $this->requestHandler->getRoutePath());
         $this->assertEquals($routeQuery, $this->requestHandler->getRouteQuery());
-        $this->assertNotTrue($this->requestHandler->isHighlight());
     }
 
     /**
