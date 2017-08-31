@@ -53,7 +53,7 @@ class Index extends Core
 
     public function reindexData(array $requestBody)
     {
-        $this->reindexDocuments(array $requestBody);
+        $this->reindexDocuments($requestBody);
     }
 
     /**
