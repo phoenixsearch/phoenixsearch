@@ -30,6 +30,7 @@ class Daemon implements DaemonInterface
         file_put_contents(self::PID_FILE, getmypid());
         // todo: signals handler
         // give a title to a process
+        // todo: fix setting process title for MacOS/Win by not setting it at all
         cli_set_process_title($pTitle);
         $childProcess = [];
         while (false === $this->stopServer) {
@@ -65,7 +66,7 @@ class Daemon implements DaemonInterface
                             \pheonixsearch\core\Environment::setEnvironment();
                             putenv('APP_MODE=command');
                             $handler = new \pheonixsearch\core\RequestHandler();
-                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_POST;
+                            $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_POST);
                             $reindexPath = '/' . IndexInterface::REINDEX;
                             $handler->setRoutePath($reindexPath);
                             $del = new \pheonixsearch\core\Index($handler);
