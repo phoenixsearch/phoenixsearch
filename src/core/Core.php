@@ -218,8 +218,9 @@ class Core extends BaseCore
 
     /**
      * Reindex all structures, documents, words, ids etc to new index/type
+     * @param array $data   an array of source and destination indices
      */
-    protected function reindexDocuments()
+    protected function reindexDocuments(array $data)
     {
         $requestBody     = $this->requestHandler->getRequestBodyArray();
         $this->index     = $requestBody[IndexInterface::DATA_SOURCE][IndexInterface::DATA_INDEX];
