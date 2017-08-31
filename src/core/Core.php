@@ -282,7 +282,8 @@ class Core extends BaseCore
                 $listKey = $destListKey . $wordHash;
                 $this->redisConn->lpush($listKey, [$id]);
                 $setKey = $destHashKey . $wordHash;
-                $doc    = $this->redisConn->hget($setKey, $id);
+                $hKey = $this->hashIndexKey . $wordHash;
+                $doc    = $this->redisConn->hget($hKey, $id);
                 $this->redisConn->hset($setKey, $id, $doc);
             }
         }
