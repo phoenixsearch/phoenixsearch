@@ -218,8 +218,9 @@ class Core extends BaseCore
 
     /**
      * Reindex all structures, documents, words, ids etc to new index/type
+     * @param array $data   an array of source and destination indices
      */
-    protected function reindexDocuments()
+    protected function reindexDocuments(array $data)
     {
         $requestBody     = $this->requestHandler->getRequestBodyArray();
         $this->index     = $requestBody[IndexInterface::DATA_SOURCE][IndexInterface::DATA_INDEX];
@@ -280,9 +281,10 @@ class Core extends BaseCore
             foreach ($range as $i => $id) { // got the mappings md5(word) => id
                 $wordHash = str_replace($this->listIndexKey, '', $key);
                 $listKey = $destListKey . $wordHash;
-                $this->redisConn->lpush($listKey, $id);
+                $this->redisConn->lpush($listKey, [$id]);
                 $setKey = $destHashKey . $wordHash;
-                $doc    = $this->redisConn->hget($setKey, $id);
+                $hKey = $this->hashIndexKey . $wordHash;
+                $doc    = $this->redisConn->hget($hKey, $id);
                 $this->redisConn->hset($setKey, $id, $doc);
             }
         }

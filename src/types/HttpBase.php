@@ -2,7 +2,7 @@
 
 namespace pheonixsearch\types;
 
-class HttpBase
+interface HttpBase
 {
     const HTTP_METHOD_POST   = 'POST';
     const HTTP_METHOD_GET    = 'GET';

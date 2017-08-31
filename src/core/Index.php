@@ -4,6 +4,8 @@ namespace pheonixsearch\core;
 
 use pheonixsearch\helpers\Output;
 use pheonixsearch\helpers\Timers;
+use pheonixsearch\types\CoreInterface;
+use pheonixsearch\types\DaemonInterface;
 use pheonixsearch\types\IndexInterface;
 
 class Index extends Core
@@ -41,7 +43,16 @@ class Index extends Core
 
     public function reindex()
     {
-        $this->reindexDocuments();
+        $msgKey = ftok(DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
+        $seg    = msg_get_queue($msgKey);
+        // todo: implement set indices from request body
+        msg_send($seg, CoreInterface::MSG_TYPE_REINDEX, [
+            IndexInterface::INDEX => $this->getStdFields()->getIndex(),
+            IndexInterface::TYPE  => $this->getStdFields()->getType(),
+        ]);
+        Output::out([
+            'acknowledged' => true,
+        ], $this->getStdFields());
     }
 
     /**
