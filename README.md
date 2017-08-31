@@ -15,6 +15,8 @@ PhoenixSearch is a fast and modern full-text real-time search engine based on Re
     * [Search with offset/limit](#user-content-search-with-offset/limit)
     * [Search with highlighted query](#user-content-search-with-highlighted-query)    
 * [Delete document](#user-content-delete-document)
+* [Delete index](#user-content-delete-index)
+* [Reindex](#user-content-reindex)
 * [Getting indices info](#user-content-getting-indices-info)
 * [Getting detailed index info](#user-content-getting-detailed-index-info) 
 
@@ -346,6 +348,32 @@ Response:
 ```
 
 The message `"acknowledged": true` means the job is processed under the daemon `phoenixsearchd`.
+
+### Reindex 
+
+```json
+POST http://pheonixsearch.loc/_reindex
+```
+
+```json
+{
+  "source": {
+    "index": "myindex",
+    "index_type":"myindextype"
+  },
+  "dest": {
+    "index": "myanotherindex",
+    "index_type":"myanothertype"
+  }
+}
+```
+
+Response:
+```json
+{
+    "acknowledged": true
+}
+```
 
 ### Getting indices info
 
