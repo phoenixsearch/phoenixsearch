@@ -201,8 +201,10 @@ class Core extends BaseCore
             throw new RequestException(Errors::REQUEST_MESSAGES[Errors::REQUEST_INDEX_NOT_FOUND], Errors::REQUEST_INDEX_NOT_FOUND);
         }
         foreach ($matches as $k => $v) {
-            $this->id = $k;
-            $this->deleteDocument();
+            if (true === is_numeric($k)) { // determine ids
+                $this->id = $k;
+                $this->deleteDocument();
+            }
         }
         // delete artifacts like info, structure of index
         $this->redisConn->hdel(InfoInterface::INFO_INDICES, [$this->index]);

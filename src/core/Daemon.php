@@ -51,14 +51,14 @@ class Daemon implements DaemonInterface
                             $msgType, self::MAX_MESSAGE_SIZE, $msg)
                     ) {
                         $pid = getmypid();
-                        DaemonOutput::print($pid, 'running task type: ' . $msgType . ' ...');
+                        DaemonOutput::print($pid, 'running task type: ' . DaemonOutput::OPERATION_TITLES[$msgType] . ' ...');
                         if ($msgType === CoreInterface::MSG_TYPE_DELETE_INDEX) {
                             $this->deleteIndex($msg);
                         }
                         if ($msgType === CoreInterface::MSG_TYPE_REINDEX) {
                             $this->reindex($msg);
                         }
-                        DaemonOutput::print($pid, 'task type: ' . $msgType . ' successfully executed.');
+                        DaemonOutput::print($pid, 'task type: ' . DaemonOutput::OPERATION_TITLES[$msgType] . ' successfully executed.');
                     }
                     exit(0);
                 }
