@@ -62,8 +62,6 @@ interface IndexInterface
     const RESULT_NOT_FOUND = 'not found';
 
     // arrays to hold hash keys
-    const WORD_INDICES   = '_word_indices';
-    const LIST_WORDS_KEY = '_list_words_key';
     const HASH_WORDS_KEY = '_hash_words_key';
 
     const ID_DOC_MATCH = 'MATCHING';

@@ -177,7 +177,7 @@ class BaseCore implements CoreInterface
      */
     protected function resetCanonicalIndex(string $toIndex, string $toIndexTYpe): void
     {
-        $fromData  = $this->unser($this->redisConn->hget($this->index, IndexInterface::STRUCTURE));
+        $fromData         = $this->unser($this->redisConn->hget($this->index, IndexInterface::STRUCTURE));
         $toData[$toIndex] = $fromData[$this->index];
         if (empty($toIndexTYpe) === false) {
             $toData[$toIndex][IndexInterface::MAPPINGS][$toIndexTYpe] = $fromData[$this->index][IndexInterface::MAPPINGS][$this->indexType];
@@ -259,37 +259,26 @@ class BaseCore implements CoreInterface
     }
 
     /**
-     * @param string $lKey
-     *
      * @return array
      */
-    protected function setIndexData(string $lKey): array
+    protected function setIndexData(): array
     {
-        $data        = [];
-        $wordIndices = [];
-        $indices     = [];
-        $docSha      = sha1($this->requestSource);
-        $docShaData  = $this->redisConn->hget($this->incrKey, $docSha);
+        $data       = [];
+        $docSha     = sha1($this->requestSource);
+        $docShaData = $this->redisConn->hget($this->incrKey, $docSha);
         if (empty($docShaData) === false) {
             $data = unserialize($docShaData);
         }
 
-        $range = $this->redisConn->lrange($lKey, self::LRANGE_DEFAULT_START, self::LRANGE_DEFAULT_STOP);
-        if (empty($range) === false) {
-            $indices     = array_values($range);
-            $wordIndices = empty($data[IndexInterface::WORD_INDICES]) ? $indices :
-                array_diff($indices, $data[IndexInterface::WORD_INDICES]);
-        }
         // insert new hashed doc with incr ID and DATA or fulfill _word_indices if there are more
-        if (empty($data) || empty($wordIndices) === false) {
+        if (empty($data)) {
             $id        = $this->redisConn->incr($this->hashIndexKey);
             $t         = time();
             $data      = [
-                IndexInterface::ID           => $id, // needed to use without serialization
-                IndexInterface::TIMESTAMP    => $t, // needed to use without serialization
-                IndexInterface::WORD_INDICES => $indices,
-                IndexInterface::VERSION      => 1,
-                IndexInterface::SOURCE       => $this->requestSource,
+                IndexInterface::ID        => $id, // needed to use without serialization
+                IndexInterface::TIMESTAMP => $t, // needed to use without serialization
+                IndexInterface::VERSION   => 1,
+                IndexInterface::SOURCE    => $this->requestSource,
             ];
             $incrMatch = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
             // save id -> key for fast delete/update ops

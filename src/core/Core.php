@@ -20,7 +20,6 @@ class Core extends BaseCore
     private $wordHashes = [];
     private $result     = [];
 
-    private $listWordKeys = [];
     private $hashWordKeys = [];
 
     private $offset = 0;
@@ -66,16 +65,14 @@ class Core extends BaseCore
         // prevent doubling repeated words
         if (empty($this->wordHashes[$wordHash])) {
             $this->wordHashes[$wordHash] = 1;
-            $lKey                        = $this->listIndexKey . $wordHash;
             if ($this->stdFields->getId() === 0) {
-                $this->setIndexData($lKey);
+                $this->setIndexData();
             }
             $this->setRequestDocument();
             $hKey                 = $this->hashIndexKey . $wordHash;
-            $this->listWordKeys[] = $lKey;
             $this->hashWordKeys[] = $hKey;
+            // $this->listIndexKey is only for incr on words, then it will be deleted with index deletion if needed
             $incr                 = $this->redisConn->incr($this->listIndexKey);
-            $this->redisConn->lpush($lKey, [$incr]);
             $this->redisConn->hset($hKey, $incr, $this->requestDocument);
         }
     }
@@ -170,8 +167,6 @@ class Core extends BaseCore
         if (empty($docData) === false) {
             $this->stdFields->setOpType(IndexInterface::RESULT_FOUND);
             $this->stdFields->setOpStatus(true);
-            // loop through saved index_key_md5(word) list and delete them
-            $this->redisConn->del($docData[IndexInterface::LIST_WORDS_KEY]);
             // loop through saved index:key:md5(word) hashes and delete them
             $this->redisConn->del($docData[IndexInterface::HASH_WORDS_KEY]);
             // delete doc match
@@ -241,7 +236,7 @@ class Core extends BaseCore
                 ? self::LIST_INDEX_GLUE : (self::LIST_INDEX_GLUE . $destIndexType . self::LIST_INDEX_GLUE));
         $destHashKey = $destIndex . (empty($destIndexType)
                 ? self::HASH_INDEX_GLUE : (self::HASH_INDEX_GLUE . $destIndexType . self::HASH_INDEX_GLUE));
-        $this->resetListsAndHashes($destListKey, $destHashKey);
+        $this->resetHashes($destListKey, $destHashKey);
         $this->resetInfo($this->index, $destIndex);
         $this->resetDictHashData($destIncrKey);
         $this->resetCanonicalIndex($destIndex, $destIndexType);
@@ -275,18 +270,14 @@ class Core extends BaseCore
      *
      * @internal param array $list
      */
-    private function resetListsAndHashes(string $destListKey, string $destHashKey)
+    private function resetHashes(string $destListKey, string $destHashKey)
     {
-        $list = $this->redisConn->keys($this->listIndexKey . CoreInterface::INDEX_HASH_PATTERN);
+        $list = $this->redisConn->keys($this->hashIndexKey . CoreInterface::INDEX_HASH_PATTERN);
         foreach ($list as $key) {
-            $range = $this->redisConn->lrange($key, 0, -1);
-            foreach ($range as $i => $id) { // got the mappings md5(word) => id
-                $wordHash = str_replace($this->listIndexKey, '', $key);
-                $listKey = $destListKey . $wordHash;
-                $this->redisConn->lpush($listKey, [$id]);
+            $data = $this->redisConn->hgetall($key);
+            foreach ($data as $id => $doc) { // got the mappings md5(word) => id
+                $wordHash = str_replace($this->hashIndexKey, '', $key);
                 $setKey = $destHashKey . $wordHash;
-                $hKey = $this->hashIndexKey . $wordHash;
-                $doc    = $this->redisConn->hget($hKey, $id);
                 $this->redisConn->hset($setKey, $id, $doc);
             }
         }
@@ -355,7 +346,6 @@ class Core extends BaseCore
         $docSha                               = sha1($this->requestSource);
         $docShaData                           = $this->redisConn->hget($this->incrKey, $docSha);
         $data                                 = unserialize($docShaData);
-        $data[IndexInterface::LIST_WORDS_KEY] = $this->listWordKeys;
         $data[IndexInterface::HASH_WORDS_KEY] = $this->hashWordKeys;
         $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
     }
