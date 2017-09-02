@@ -41,6 +41,8 @@ ps aux | grep phoenixsearch
 
 ### Index document
 
+Index a new document into the storage and increments `docs_count` in index info.
+
 Request:
 ```json
 PUT http://pheonixsearch.loc/myindex/myindextype?pretty
