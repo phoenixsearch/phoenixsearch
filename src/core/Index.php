@@ -67,6 +67,5 @@ class Index extends Core
                 $this->insertWord($word, $field);
             }
         }
-        $this->setDictHashData();
     }
 }

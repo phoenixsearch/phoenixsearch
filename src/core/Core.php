@@ -167,8 +167,6 @@ class Core extends BaseCore
         if (empty($docData) === false) {
             $this->stdFields->setOpType(IndexInterface::RESULT_FOUND);
             $this->stdFields->setOpStatus(true);
-            // loop through saved index:key:md5(word) hashes and delete them
-            $this->redisConn->del($docData[IndexInterface::HASH_WORDS_KEY]);
             // delete doc match
             $this->redisConn->hdel($incrMatch, [$this->id]);
             // delete doc data
@@ -341,15 +339,9 @@ class Core extends BaseCore
         return false;
     }
 
-    protected function setDictHashData(): void
-    {
-        $docSha                               = sha1($this->requestSource);
-        $docShaData                           = $this->redisConn->hget($this->incrKey, $docSha);
-        $data                                 = unserialize($docShaData);
-        $data[IndexInterface::HASH_WORDS_KEY] = $this->hashWordKeys;
-        $this->redisConn->hset($this->incrKey, $docSha, serialize($data));
-    }
-
+    /**
+     * @param string $destIncrKey
+     */
     protected function resetDictHashData(string $destIncrKey): void
     {
         $vals = $this->redisConn->hgetall($this->incrKey);

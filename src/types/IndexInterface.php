@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: arthur
- * Date: 31/07/2017
- * Time: 12:10
- */
 
 namespace pheonixsearch\types;
 
@@ -60,9 +54,6 @@ interface IndexInterface
     const RESULT_UPDATED   = 'updated';
     const RESULT_FOUND     = 'found';
     const RESULT_NOT_FOUND = 'not found';
-
-    // arrays to hold hash keys
-    const HASH_WORDS_KEY = '_hash_words_key';
 
     const ID_DOC_MATCH = 'MATCHING';
 }
