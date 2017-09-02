@@ -57,16 +57,19 @@ Response:
 ```json
 {
     "created": true,
-    "took": 63,
+    "took": 23,
     "_index": "myindex",
     "_type": "myindextype",
-    "_id": 1,
+    "_id": 2,
     "result": "created",
     "_version": 1
 }
 ```
 
 #### Update document with same content (idempotent operation).
+
+If an update with the same content occurred, then this document will be found and `_version` 
+property will be updated to `i++`.  
 
 Request:
 ```json
@@ -94,6 +97,8 @@ Response:
 ```
 
 ### Search documents
+
+Whether you need to search by word or phrase just add `query->term` into json body.
 
 Request:
 ```json
@@ -142,6 +147,9 @@ Response:
 ```
 
 #### Search with offset/limit
+
+By offsetting the search request (like in sql) you saying to engine - start collecting documents from J, 
+for amount of K if limit was set. 
 
 Request:
 
@@ -223,6 +231,9 @@ Response:
 ```
 
 #### Search with highlighted query
+
+When you need to highlight words, phrases etc, it is simple enough to do by adding `highlight` property into json scheme.    
+
 ```json
 {   
     "offset":5, 
@@ -304,6 +315,8 @@ Response:
 
 ### Delete document
 
+Deletes one document by it's id, decreasing counter in index info by 1.
+
 ```json
 DELETE http://pheonixsearch.loc/myindex/myindextype/2?pretty
 ```
@@ -336,6 +349,8 @@ For non-existent document:
 
 ### Delete index
 
+Deletes an entire index data from storage.
+
 ```json
 DELETE http://pheonixsearch.loc/myindex/myindextype
 ```
@@ -350,6 +365,8 @@ Response:
 The message `"acknowledged": true` means the job is processed under the daemon `phoenixsearchd`.
 
 ### Reindex 
+
+Copies documents from one index to another with mappings of source index by default.
 
 ```json
 POST http://pheonixsearch.loc/_reindex
@@ -376,6 +393,8 @@ Response:
 ```
 
 ### Getting indices info
+
+This request will output general information about all indices, that has been stored yet. 
 
 ```json
 GET http://pheonixsearch.loc/_cat/indices
@@ -447,7 +466,7 @@ GET http://pheonixsearch.loc/myindex
 }
 ```
 
-`ignore_above` means no restriction on string(text) length is applied, `whitespace` type is the default type 
+`"ignore_above": 0` means no restriction on string(text) length is applied, `whitespace` type is the default type 
 of inverted index analyzer which just breaks text by whitespace tokens.
 
 ### Performance
