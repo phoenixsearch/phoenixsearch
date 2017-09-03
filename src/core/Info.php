@@ -65,13 +65,16 @@ trait Info
      */
     public function resetInfo(string $fromIndex, string $toIndex): void
     {
-        $fromData   = $this->unser($this->redisConn->hget(InfoInterface::INFO_INDICES, $fromIndex));
-        $toData = [
-            IndexInterface::INDEX       => $toIndex,
-            InfoInterface::DOCS_COUNT   => $fromData[InfoInterface::DOCS_COUNT],
-            InfoInterface::DOCS_DELETED => $fromData[InfoInterface::DOCS_DELETED],
-        ];
-        $this->redisConn->hset(InfoInterface::INFO_INDICES, $toIndex, $this->ser($toData));
+        $data = $this->redisConn->hget(InfoInterface::INFO_INDICES, $fromIndex);
+        if (empty($data) === false) {
+            $fromData = $this->unser($data);
+            $toData   = [
+                IndexInterface::INDEX       => $toIndex,
+                InfoInterface::DOCS_COUNT   => $fromData[InfoInterface::DOCS_COUNT],
+                InfoInterface::DOCS_DELETED => $fromData[InfoInterface::DOCS_DELETED],
+            ];
+            $this->redisConn->hset(InfoInterface::INFO_INDICES, $toIndex, $this->ser($toData));
+        }
     }
 
     /**

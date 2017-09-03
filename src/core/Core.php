@@ -226,7 +226,7 @@ class Core extends BaseCore
         $this->setIncrKey();
         $incrMatch     = $this->incrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         $destIndex     = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX];
-        $destIndexType = $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE];
+        $destIndexType = empty($requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE]) ? '' : $requestBody[IndexInterface::DATA_DEST][IndexInterface::DATA_INDEX_TYPE];
         $destIncrKey   = $destIndex . (empty($destIndexType) ? '' : (self::HASH_INDEX_GLUE . $destIndexType));
         $destIncrMatch = $destIncrKey . CoreInterface::HASH_INDEX_GLUE . IndexInterface::ID_DOC_MATCH;
         $this->resetDocuemnts($destIncrMatch, $incrMatch);
