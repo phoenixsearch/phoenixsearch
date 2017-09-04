@@ -2,6 +2,7 @@
 
 use pheonixsearch\core\Index;
 use pheonixsearch\core\RequestHandler;
+use pheonixsearch\types\CoreInterface;
 use pheonixsearch\types\IndexInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -115,5 +116,58 @@ class IndexTest extends TestCase
         $del->clearAllIndexData();
         $this->assertEquals(\pheonixsearch\types\HttpBase::HTTP_METHOD_DELETE, $handler->getRequestMethod());
         $this->assertEquals($routePath, $handler->getRoutePath());
+    }
+
+    public function testReindexOnDaemon()
+    {
+        $handler = new \pheonixsearch\core\RequestHandler();
+        $handler->setRequestBodyArray([
+            IndexInterface::DATA_SOURCE => [
+                IndexInterface::DATA_INDEX => 'index',
+            ],
+            IndexInterface::DATA_DEST   => [
+                IndexInterface::DATA_INDEX => 'newindex',
+            ],
+        ]);
+        $reindexPath = '/' . IndexInterface::REINDEX;
+        $handler->setRoutePath($reindexPath);
+        $index = new Index($handler);
+        $index->reindex();
+        $ipcKey = ftok(\pheonixsearch\types\DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
+        $queue  = msg_get_queue($ipcKey);
+        $stat   = msg_stat_queue($queue);
+        $this->assertEquals($stat['msg_qnum'], 1);
+        $this->assertTrue(msg_receive($queue, 0,
+            $msgType, \pheonixsearch\types\DaemonInterface::MAX_MESSAGE_SIZE, $msg));
+        $this->assertArraySubset([
+            IndexInterface::DATA_SOURCE => [
+                IndexInterface::DATA_INDEX => 'index',
+            ],
+            IndexInterface::DATA_DEST   => [
+                IndexInterface::DATA_INDEX => 'newindex',
+            ],
+        ], $msg);
+    }
+
+    public function testDeleteOnDaemon()
+    {
+        $index     = uniqid();
+        $type      = uniqid();
+        $routePath = '/' . $index . '/' . $type . '/';
+        $handler   = new \pheonixsearch\core\RequestHandler();
+        $handler->setRequestMethod(\pheonixsearch\types\HttpBase::HTTP_METHOD_DELETE);
+        $handler->setRoutePath($routePath);
+        $del = new \pheonixsearch\core\Delete($handler);
+        $del->deleteIndex();
+        $ipcKey = ftok(\pheonixsearch\types\DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
+        $queue  = msg_get_queue($ipcKey);
+        $stat   = msg_stat_queue($queue);
+        $this->assertEquals($stat['msg_qnum'], 1);
+        $this->assertTrue(msg_receive($queue, 0,
+            $msgType, \pheonixsearch\types\DaemonInterface::MAX_MESSAGE_SIZE, $msg));
+        $this->assertArraySubset([
+            IndexInterface::INDEX => $index,
+            IndexInterface::TYPE  => $type,
+        ], $msg);
     }
 }
