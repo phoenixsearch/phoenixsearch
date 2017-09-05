@@ -19,6 +19,7 @@ class IndexTest extends TestCase
         putenv('REDIS_CLUSTER=false');
         putenv('REDIS_REPLICATION=false');
         putenv('APP_MODE=testing');
+        touch(\pheonixsearch\types\DaemonInterface::PID_FILE);
     }
 
     public function testCreateNewIndex()
@@ -133,6 +134,7 @@ class IndexTest extends TestCase
         $handler->setRoutePath($reindexPath);
         $index = new Index($handler);
         $index->reindex();
+        sleep(1);
         $ipcKey = ftok(\pheonixsearch\types\DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
         $queue  = msg_get_queue($ipcKey);
         $stat   = msg_stat_queue($queue);
@@ -159,6 +161,7 @@ class IndexTest extends TestCase
         $handler->setRoutePath($routePath);
         $del = new \pheonixsearch\core\Delete($handler);
         $del->deleteIndex();
+        sleep(1);
         $ipcKey = ftok(\pheonixsearch\types\DaemonInterface::PID_FILE, CoreInterface::FTOK_PROJECT_NAME);
         $queue  = msg_get_queue($ipcKey);
         $stat   = msg_stat_queue($queue);
