@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: root
- * Date: 15.08.17
- * Time: 20:59
- */
 
 namespace pheonixsearch\core;
 

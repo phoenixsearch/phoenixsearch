@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: root
- * Date: 05.08.17
- * Time: 22:22
- */
 
 namespace pheonixsearch\helpers;
 
